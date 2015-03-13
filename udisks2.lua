@@ -81,7 +81,7 @@ function udisks2.deviceMounted(device)
 	return deviceInfo(device, "MountPoints"):len() > 0
 end
 
-function deviceMountPoint(device)
+function udisks2.deviceMountPoint(device)
 	return deviceInfo(device, "MountPoints")
 end
 
