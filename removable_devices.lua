@@ -8,8 +8,11 @@
 --
 --]]
 
-package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/libs/?.lua;" .. package.path
-package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/assets/?.lua;" .. package.path
+local removableDevices = debug.getinfo(1).source:gsub("@", "")
+local scriptDir = removableDevices:gsub("[^/]+$", "")
+
+package.path = scriptDir .. "libs/?.lua;" .. package.path
+package.path = scriptDir .. "assets/?.lua;" .. package.path
 local l10n = require "l10n"
 local notification = require "notification"
 local openboxMenu = require "openboxMenu"
@@ -23,8 +26,6 @@ l10n = l10n[lang].removableDevices
 local ejectableDevicesFilter = "[sh]d[[:lower:]]+[[:digit:]]+|mmcblk[[:digit:]]+"
 local opticalDevicesFilter = "sr[[:digit:]]+"
 local fileManager = "dolphin"
-
-local removableDevices =  debug.getinfo(1).source:gsub("@", "")
 
 local function showInfo(info, label)
 	if  info:len() > 0 then

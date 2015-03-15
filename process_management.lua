@@ -8,8 +8,11 @@
 --
 --]]
 
-package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/libs/?.lua;" .. package.path
-package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/assets/?.lua;" .. package.path
+local scriptPath = debug.getinfo(1).source:gsub("@", "")
+local scriptDir = scriptPath:gsub("[^/]+$", "")
+
+package.path = scriptDir .. "libs/?.lua;" .. package.path
+package.path = scriptDir .. "assets/?.lua;" .. package.path
 local l10n = require "l10n"
 local system = require "system"
 local openboxMenu = require "openboxMenu"

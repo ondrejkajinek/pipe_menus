@@ -8,8 +8,11 @@
 --
 --]]
 
-package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/libs/?.lua;" .. package.path
-package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/assets/?.lua;" .. package.path
+local scriptPath = debug.getinfo(1).source:gsub("@", "")
+local scriptDir = scriptPath:gsub("[^/]+$", "")
+
+package.path = scriptDir .. "libs/?.lua;" .. package.path
+package.path = scriptDir .. "assets/?.lua;" .. package.path
 package.cpath = "/usr/lib/lua/luarocks/lib/lua/5.1/?.so;" .. package.cpath
 require "common"
 local iconSet = require "iconSet"
@@ -32,8 +35,7 @@ local playlistDirSeparator = "::"
 local discographyName = "diskografie"
 
 local cmds = {
-	convertAlbumart = "convert '%s' -resize %dx%d '%s'",
-	mpdControl = debug.getinfo(1).source:gsub("@", "")
+	convertAlbumart = "convert '%s' -resize %dx%d '%s'"
 }
 
 -- -- -- -- -- -- -- -- -- -- -- --
@@ -69,12 +71,12 @@ local function modeControls()
 end
 
 local function playlistControls()
-	openboxMenu.subPipemenu("mpc-playlist", l10n.currentPlaylist, string.format("%s current-playlist", cmds.mpdControl))
-	openboxMenu.subPipemenu("mpd-playlists", l10n.savedPlaylists, string.format("%s saved-playlists", cmds.mpdControl))
+	openboxMenu.subPipemenu("mpc-playlist", l10n.currentPlaylist, string.format("%s current-playlist", scriptPath))
+	openboxMenu.subPipemenu("mpd-playlists", l10n.savedPlaylists, string.format("%s saved-playlists", scriptPath))
 end
 
 local function otherControls()
-	openboxMenu.subPipemenu("mpc-albumarts", l10n.availableAlbumarts, string.format("%s albumart-convert", cmds.mpdControl))
+	openboxMenu.subPipemenu("mpc-albumarts", l10n.availableAlbumarts, string.format("%s albumart-convert", scriptPath))
 end
 
 local function convertButton(songDir, image)
