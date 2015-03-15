@@ -17,7 +17,7 @@ local openboxMenu = require "openboxMenu"
 local cmds = {
 	processDetail = "ps -o comm,nice,pcpu,args --pid %d h",
 	topCpuProcesses = "ps -eo pid --sort=-pcpu h | head -%d | tr -d ' '",
-	topMemProcesses = "ps -eo pid --sort='-%mem' h | head -%d | tr -d ' '",
+	topMemProcesses = "ps -eo pid --sort='-%%mem' h | head -%d | tr -d ' '",
 	reniceProcess = "renice -n %d --pid %d"
 }
 
@@ -68,7 +68,7 @@ local function topMemProcesses(count)
 	for pid in system.resultLines(string.format(cmds.topMemProcesses, count)) do
 		processManagement(pid)
 	end
-	openboxMenu.closePipemenu()
+	openboxMenu.endPipemenu()
 end
 
 local function help()
