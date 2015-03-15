@@ -6,12 +6,13 @@
 --
 --]]
 
+package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/libs/?.lua;" .. package.path
 local system = require "system"
 
 local notification = {}
 
-local notifier = 'notify-send'
-local notifierOptions = '--expire-time=5000'
+local notifier = "notify-send"
+local notifierOptions = "--expire-time=5000"
 
 -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- public functions  -- -- --

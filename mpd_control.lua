@@ -8,28 +8,23 @@
 --
 --]]
 
-local home = os.getenv("HOME")
-
-package.path = home .. "/.config/openbox/pipe_menus/?.lua;" .. package.path
+package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/libs/?.lua;" .. package.path
+package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/assets/?.lua;" .. package.path
 package.cpath = "/usr/lib/lua/luarocks/lib/lua/5.1/?.so;" .. package.cpath
 require "common"
+local iconSet = require "iconSet"
 local l10n = require "l10n"
+local mpd = require "mpd"
 local openboxMenu = require "openboxMenu"
 local system = require "system"
 local lfs = require "lfs"
 
 -- use only MPD part of l10n
-l10n = l10n.cz.mpd
+local lang = "cz"
+l10n = l10n[lang].mpd
+-- use only MPD icons
+iconSet = iconSet.mpd
 
-local iconSet =
-{
-	skipBackward = "/usr/share/icons/oxygen/32x32/actions/media-skip-backward.png",
-	skipForward = "/usr/share/icons/oxygen/32x32/actions/media-skip-forward.png",
-	playbackPause = "/usr/share/icons/oxygen/32x32/actions/media-playback-pause.png",
-	seekBackward = "/usr/share/icons/oxygen/32x32/actions/media-seek-backward.png",
-	random = home .. "/.icons/actions/media-random-tracks-amarok.png",
-	repeatPlaylist = home .. "/.icons/actions/media-repeat-playlist-amarok.png"
-}
 local albumartSize = 80
 local albumartName = "albumart.png"
 local imageSuffixes = { "jpg", "jpeg" }
@@ -38,24 +33,12 @@ local discographyName = "diskografie"
 
 local cmds = {
 	convertAlbumart = "convert '%s' -resize %dx%d '%s'",
-	mpcCurrent = "mpc -f '%album% - %title%' current",
-	mpcGetPath = system.pipe("grep '^%s' /etc/mpd.conf", "grep -oP '/[/\\w]+'"),
-	mpcPlaylist = "mpc -f '%s' playlist",
-	mpcStatus = system.pipe("mpc status", "grep -o '%s: on'"),
 	mpdControl = debug.getinfo(1).source:gsub("@", "")
 }
 
-local function currentSong()
-	return system.singleResult(cmds.mpcCurrent) or l10n.notPlaying
-end
-
-local function mpdOption(option)
-	return system.singleResult(string.format(cmds.mpcStatus, option)) and "on" or "off"
-end
-
-local function mpdPath(path)
-	return system.singleResult(string.format(cmds.mpcGetPath, path))
-end
+-- -- -- -- -- -- -- -- -- -- -- --
+-- -- -- helper functions	-- -- --
+-- -- -- -- -- -- -- -- -- -- -- --
 
 local function newPlaylistDir(name)
 	return {
@@ -73,30 +56,59 @@ local function switchPlaylistAction(playlistName)
 	}
 end
 
+local function playbackControls()
+	openboxMenu.button(l10n.previousTrack, "mpc prev", iconSet.skipBackward)
+	openboxMenu.button(l10n.playPause, "mpc toggle", iconSet.playbackPause)
+	openboxMenu.button(l10n.fromBeginning, "mpc seek 0", iconSet.seekBackward)
+	openboxMenu.button(l10n.nextTrack, "mpc next", iconSet.skipForward)
+end
+
+local function modeControls()
+	openboxMenu.button(string.format("%s (%s)", l10n.random, mpd.option("random")), "mpc random", iconSet.random)
+	openboxMenu.button(string.format("%s (%s)", l10n.repeating, mpd.option("repeat")), "mpc repeat", iconSet.repeatPlaylist)
+end
+
+local function playlistControls()
+	openboxMenu.subPipemenu("mpc-playlist", l10n.currentPlaylist, string.format("%s current-playlist", cmds.mpdControl))
+	openboxMenu.subPipemenu("mpd-playlists", l10n.savedPlaylists, string.format("%s saved-playlists", cmds.mpdControl))
+end
+
+local function otherControls()
+	openboxMenu.subPipemenu("mpc-albumarts", l10n.availableAlbumarts, string.format("%s albumart-convert", cmds.mpdControl))
+end
+
+local function convertButton(songDir, image)
+	local imagePath = system.path(songDir, image)
+	local albumartPath = system.path(songDir, albumartName)
+	openboxMenu.button(image, string.format(cmds.convertAlbumart, imagePath, albumartSize, albumartSize, albumartPath))
+end
+
+-- -- -- -- -- -- -- -- -- -- -- --
+-- -- -- module functions  -- -- --
+-- -- -- -- -- -- -- -- -- -- -- --
+
 local function currentPlaylist()
 	openboxMenu.beginPipemenu()
 	local separator = "::C++::"
 	local previousAlbumName = nil
-	local no = 1
-	local albumNo = 1
+	local no = 0
+	local albumNo = 0
 	local tags = { "%album%", "%track%", "%title%" }
-	local playlistCmd = string.format(cmds.mpcPlaylist, table.concat(tags, separator))
-	for track in system.resultLines(playlistCmd) do
+	for track in mpd.playlist(tags, separator) do
 		local albumName, trackNo, trackName = unpack(track:split(separator, 2))
-		-- remove some nasty formats from trackNo
 		local trackNo = trackNo:match("%d+")
 		if albumName ~= previousAlbumName then
-			if albumNo > 1 then
+			if albumNo > 0 then
 				openboxMenu.endMenu()
 			end
-			openboxMenu.beginMenu(string.format("mpd-playlist-%s-%d", string.lower(albumName), albumNo), albumName)
 			albumNo = albumNo + 1
+			openboxMenu.beginMenu(string.format("mpd-playlist-%s-%d", string.lower(albumName), albumNo), albumName)
 		end
-		openboxMenu.button(string.format("%02d - %s", trackNo or 0, trackName), string.format("mpc play %d", no))
 		no = no + 1
+		openboxMenu.button(string.format("%02d - %s", trackNo or 0, trackName), string.format("mpc play %d", no))
 		previousAlbumName = albumName
 	end
-	if albumNo > 1 then
+	if albumNo > 0 then
 		openboxMenu.endMenu()
 	end
 	openboxMenu.endPipemenu()
@@ -104,7 +116,7 @@ end
 
 local function savedPlaylists()
 	openboxMenu.beginPipemenu()
-	local playlistDir = mpdPath("playlist_directory")
+	local playlistDir = mpd.path("playlist_directory")
 	local lsCmd = system.pipe(string.format("ls %s", playlistDir), "grep '\\.m3u$'")
 	local playlists = {}
 	local playlistsDirIndex = {}
@@ -142,15 +154,12 @@ end
 
 local function albumartConvert()
 	openboxMenu.beginPipemenu()
-	local library = mpdPath("music_directory")
-	local trackFile = system.singleResult("mpc -f %file% current")
-	local trackDir = system.parentDir(system.path(library, trackFile))
+	local songDir = mpd.currentSongDir()
 	local imageFilter = string.format("grep -E '%s'", table.concat(imageSuffixes, "|"))
+	local lsCmd = string.format("ls '%s'", songDir)
 	local imagesAvailable = false
-	for image in system.resultLines(system.pipe(string.format("ls '%s'", trackDir), imageFilter)) do
-		local imagePath = system.path(trackDir, image)
-		local albumartPath = system.path(trackDir, albumartName)
-		openboxMenu.button(image, string.format(cmds.convertAlbumart, imagePath, albumartSize, albumartSize, albumartPath))
+	for image in system.resultLines(system.pipe(lsCmd, imageFilter)) do
+		convertButton(songDir, image)
 		imagesAvailable = true
 	end
 	if not imagesAvailable then
@@ -161,26 +170,14 @@ end
 
 local function createControls()
 	openboxMenu.beginPipemenu()
-	openboxMenu.title(currentSong())
-	openboxMenu.button(l10n.previousTrack, "mpc prev", iconSet.skipBackward)
-	openboxMenu.button(l10n.playPause, "mpc toggle", iconSet.playbackPause)
-	openboxMenu.button(l10n.fromBeginning, "mpc seek 0", iconSet.seekBackward)
-	openboxMenu.button(l10n.nextTrack, "mpc next", iconSet.skipForward)
-
+	openboxMenu.title(mpd.currentSong() or l10n.notPlaying)
+	playbackControls()	
 	openboxMenu.separator()
-
-	openboxMenu.button(string.format("%s (%s)", l10n.random, mpdOption("random")), "mpc random", iconSet.random)
-	openboxMenu.button(string.format("%s (%s)", l10n.repeating, mpdOption("repeat")), "mpc repeat", iconSet.repeatPlaylist)
-	
+	modeControls()
 	openboxMenu.separator()
-
-	openboxMenu.subPipemenu("mpc-playlist", l10n.currentPlaylist, string.format("%s current-playlist", cmds.mpdControl))
-	openboxMenu.subPipemenu("mpd-playlists", l10n.savedPlaylists, string.format("%s saved-playlists", cmds.mpdControl))
-
+	playlistControls()
 	openboxMenu.separator()
-
-	openboxMenu.subPipemenu("mpc-albumarts", l10n.availableAlbumarts, string.format("%s albumart-convert", cmds.mpdControl))
-
+	otherControls()
 	openboxMenu.endPipemenu()
 end
 

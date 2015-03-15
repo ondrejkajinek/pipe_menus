@@ -8,7 +8,8 @@
 --
 --]]
 
-package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/?.lua;" .. package.path
+package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/libs/?.lua;" .. package.path
+package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/assets/?.lua;" .. package.path
 local l10n = require "l10n"
 local notification = require "notification"
 local openboxMenu = require "openboxMenu"
@@ -16,7 +17,8 @@ local system = require "system"
 local ud2 = require "udisks2"
 
 -- use only removableDevices part of l10n
-l10n = l10n.cz.removableDevices
+local lang = "cz"
+l10n = l10n[lang].removableDevices
 
 local ejectableDevicesFilter = "[sh]d[[:lower:]]+[[:digit:]]+|mmcblk[[:digit:]]+"
 local opticalDevicesFilter = "sr[[:digit:]]+"
@@ -144,7 +146,7 @@ local function main(option, argument)
 		["help"] = help
 	}
 	local option = option or "device-menu"
-	local action = argActions[option] or argActions["help"]
+	local action = argActions[option]
 	action(argument)
 end
 

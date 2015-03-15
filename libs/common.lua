@@ -12,8 +12,8 @@ local function escapeLuaMagic(str)
 end
 
 function string.split(str, separator, maxSplits)
-	assert(str and separator, 'Not enough arguments for string.split')
-	assert(separator:len() > 0, 'No separator given for string.split')
+	assert(str and separator, "Not enough arguments for string.split")
+	assert(separator:len() > 0, "No separator given for string.split")
 	maxSplits = maxSplits or math.huge
 
 	str = str .. separator

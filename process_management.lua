@@ -8,10 +8,11 @@
 --
 --]]
 
-package.path = './.config/openbox/pipe_menus/?.lua;' .. package.path
+package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/libs/?.lua;" .. package.path
+package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/assets/?.lua;" .. package.path
 local l10n = require "l10n"
-local system = require 'system'
-local openboxMenu = require 'openboxMenu'
+local system = require "system"
+local openboxMenu = require "openboxMenu"
 
 local cmds = {
 	processDetail = "ps -o comm,nice,pcpu,args --pid %d h",
@@ -20,7 +21,8 @@ local cmds = {
 }
 
 -- use only processManager part of l10n
-l10n = l10n.cz.processManager
+local lang = "cz"
+l10n = l10n[lang].processManager
 
 local function processMenu(info)
 	openboxMenu.title(info.prikaz)
@@ -52,18 +54,37 @@ local function processMenagement(pid)
 	openboxMenu.endMenu()
 end
 
-local function topProcesses(pocet)
-	pocet = pocet or 5
-	for pid in system.resultLines(string.format(cmds.topProcesses, pocet)) do
+local function topCpuProcesses(count)
+	openboxMenu.beginPipemenu()
+	for pid in system.resultLines(string.format(cmds.topProcesses, count)) do
 		processMenagement(pid)
 	end
-end
-
-local function main()
-	openboxMenu.beginPipemenu()
-	topProcesses(5)
 	openboxMenu.endPipemenu()
 end
 
-main()
+local function topMemProcesses(count)
+	openboxMenu.beginPipemenu()
+	-- TODO
+	openboxMenu.item("Not implemented yet...")
+	openboxMenu.closePipemenu()
+end
+
+local function help()
+	print("TODO")
+end
+
+local function main(option, count)
+	local actions =
+	{
+		["top-cpu"] = topCpuProcesses,
+		["top-mem"] = topMemProcesses,
+		["help"] = help
+	}
+	local option = option or "top-cpu"
+	local count = count or 5
+	local action = actions[option] or help
+	action(count)
+end
+
+main(unpack({ ... }))
 

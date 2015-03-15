@@ -6,7 +6,7 @@
 --
 --]]
 
-l10n = setmetatable({}, {
+local l10n = setmetatable({}, {
 	__index = function(tbl, key)
 		return key
 	end
