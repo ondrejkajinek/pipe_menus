@@ -12,9 +12,6 @@ Various pipe menus for openbox WM, all scripted in Lua. Feel free to use, modify
 		- l10n.lua: definition of messages, in format l10n.<language_code>.<message_name>
 	* scripts for creating different menus:
 		- mpd_control.lua: controls MPD: player controls, switching whole playlists, selecting songs from playlist
-		- process_management.lua: lists top processes (currently only top cpu usage), displays some info, able to kill or restart process
+		- process_management.lua: lists top processes, displays some info, able to kill or restart process
 		- removable_devices.lua: lists removable devices, provides mount/unmount actions, displays some basic info about FS
-
-## TODO
-	* add top memory usage to process_management
 

@@ -16,7 +16,8 @@ local openboxMenu = require "openboxMenu"
 
 local cmds = {
 	processDetail = "ps -o comm,nice,pcpu,args --pid %d h",
-	topProcesses = "ps -eo pid --sort=-pcpu h | head -%d | tr -d ' '",
+	topCpuProcesses = "ps -eo pid --sort=-pcpu h | head -%d | tr -d ' '",
+	topMemProcesses = "ps -eo pid --sort='-%mem' h | head -%d | tr -d ' '",
 	reniceProcess = "renice -n %d --pid %d"
 }
 
@@ -41,7 +42,7 @@ local function nonexistingProcess(pid)
 	openboxMenu.item(string.format(l10n.nonExistingProcess, pid))
 end
 
-local function processMenagement(pid)
+local function processManagement(pid)
 	local psCmd = system.pipe(string.format(cmds.processDetail, pid), "tr -s ' '")
 	local ps = system.singleResult(psCmd) or ""
 	local program, nice, pcpu, prikaz = ps:match("(%w+) (%d+) (%d+%.%d+) (.+)")
@@ -56,16 +57,17 @@ end
 
 local function topCpuProcesses(count)
 	openboxMenu.beginPipemenu()
-	for pid in system.resultLines(string.format(cmds.topProcesses, count)) do
-		processMenagement(pid)
+	for pid in system.resultLines(string.format(cmds.topCpuProcesses, count)) do
+		processManagement(pid)
 	end
 	openboxMenu.endPipemenu()
 end
 
 local function topMemProcesses(count)
 	openboxMenu.beginPipemenu()
-	-- TODO
-	openboxMenu.item("Not implemented yet...")
+	for pid in system.resultLines(string.format(cmds.topMemProcesses, count)) do
+		processManagement(pid)
+	end
 	openboxMenu.closePipemenu()
 end
 
