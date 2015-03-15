@@ -8,11 +8,11 @@
 --
 --]]
 
-local scriptPath = debug.getinfo(1).source:gsub("@", "")
-local scriptDir = scriptPath:gsub("[^/]+$", "")
+local selfPath = debug.getinfo(1).source:gsub("@", "")
+local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = scriptDir .. "libs/?.lua;" .. package.path
-package.path = scriptDir .. "assets/?.lua;" .. package.path
+package.path = selfDir .. "libs/?.lua;" .. package.path
+package.path = selfDir .. "assets/?.lua;" .. package.path
 package.cpath = "/usr/lib/lua/luarocks/lib/lua/5.1/?.so;" .. package.cpath
 require "common"
 local iconSet = require "iconSet"
@@ -31,8 +31,6 @@ iconSet = iconSet.mpd
 local albumartSize = 80
 local albumartName = "albumart.png"
 local imageSuffixes = { "jpg", "jpeg" }
-local playlistDirSeparator = "::"
-local discographyName = "diskografie"
 
 local cmds = {
 	convertAlbumart = "convert '%s' -resize %dx%d '%s'"
@@ -41,13 +39,6 @@ local cmds = {
 -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- helper functions	-- -- --
 -- -- -- -- -- -- -- -- -- -- -- --
-
-local function newPlaylistDir(name)
-	return {
-		name = name,
-		playlists = {}
-	}
-end
 
 local function switchPlaylistAction(playlistName)
 	local escapedPlaylistName = playlistName:gsub("'", "\\'")
@@ -71,12 +62,12 @@ local function modeControls()
 end
 
 local function playlistControls()
-	openboxMenu.subPipemenu("mpc-playlist", l10n.currentPlaylist, string.format("%s current-playlist", scriptPath))
-	openboxMenu.subPipemenu("mpd-playlists", l10n.savedPlaylists, string.format("%s saved-playlists", scriptPath))
+	openboxMenu.subPipemenu("mpc-playlist", l10n.currentPlaylist, string.format("%s current-playlist", selfPath))
+	openboxMenu.subPipemenu("mpd-playlists", l10n.savedPlaylists, string.format("%s saved-playlists", selfPath))
 end
 
 local function otherControls()
-	openboxMenu.subPipemenu("mpc-albumarts", l10n.availableAlbumarts, string.format("%s albumart-convert", scriptPath))
+	openboxMenu.subPipemenu("mpc-albumarts", l10n.availableAlbumarts, string.format("%s albumart-convert", selfPath))
 end
 
 local function convertButton(songDir, image)
@@ -90,62 +81,28 @@ end
 -- -- -- -- -- -- -- -- -- -- -- --
 
 local function currentPlaylist()
+	local playlist = mpd.currentPlaylist()
 	openboxMenu.beginPipemenu()
-	local separator = "::C++::"
-	local previousAlbumName = nil
-	local no = 0
-	local albumNo = 0
-	local tags = { "%album%", "%track%", "%title%" }
-	for track in mpd.playlist(tags, separator) do
-		local albumName, trackNo, trackName = unpack(track:split(separator, 2))
-		local trackNo = trackNo:match("%d+")
-		if albumName ~= previousAlbumName then
-			if albumNo > 0 then
-				openboxMenu.endMenu()
-			end
-			albumNo = albumNo + 1
-			openboxMenu.beginMenu(string.format("mpd-playlist-%s-%d", string.lower(albumName), albumNo), albumName)
+	for _, album in ipairs(playlist) do
+		openboxMenu.beginMenu(string.format("mpd-playlist-%s", album.name:lower()), album.name)
+		for _, track in ipairs(album.tracks) do
+			openboxMenu.button(track.name, string.format("mpc play %d", track.number))
 		end
-		no = no + 1
-		openboxMenu.button(string.format("%02d - %s", trackNo or 0, trackName), string.format("mpc play %d", no))
-		previousAlbumName = albumName
-	end
-	if albumNo > 0 then
 		openboxMenu.endMenu()
 	end
 	openboxMenu.endPipemenu()
 end
 
 local function savedPlaylists()
+	local playlists = mpd.savedPlaylists()
 	openboxMenu.beginPipemenu()
-	local playlistDir = mpd.path("playlist_directory")
-	local lsCmd = system.pipe(string.format("ls %s", playlistDir), "grep '\\.m3u$'")
-	local playlists = {}
-	local playlistsDirIndex = {}
-	for playlist in system.resultLines(lsCmd) do
-		playlist = playlist:gsub("%.m3u$", "")
-		if playlist:find(playlistDirSeparator) then
-			local directory, playlist = unpack(playlist:split(playlistDirSeparator, 1))
-			local dirIndex = playlistsDirIndex[directory]
-			-- TODO: use __index metamethod
-			if not dirIndex then
-				dirIndex = #playlists + 1
-				playlistsDirIndex[directory] = dirIndex
-				playlists[dirIndex] = newPlaylistDir(directory)
-			end
-			local position = playlist == discographyName and 1 or #playlists[dirIndex].playlists + 1
-			table.insert(playlists[dirIndex].playlists, position, playlist)
-		else
-			table.insert(playlists, playlist)
-		end
-	end
 	for _, item in pairs(playlists) do
 		if type(item) == "string" then
 			openboxMenu.button(item, switchPlaylistAction(item))
 		else
 			openboxMenu.beginMenu(string.format("mpd-playlists-%s", item.name), item.name)
 			for _, playlist in ipairs(item.playlists) do
-				local fullName = string.format("%s%s%s", item.name, playlistDirSeparator, playlist)
+				local fullName = string.format("%s%s%s", item.name, mpd.playlistSeparator(), playlist)
 				openboxMenu.button(playlist, switchPlaylistAction(fullName))
 			end
 			openboxMenu.endMenu()

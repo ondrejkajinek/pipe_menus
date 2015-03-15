@@ -48,6 +48,10 @@ function system.cmd(...)
 	return table.concat(parts, " ")
 end
 
+function system.stripSuffix(file)
+	return file:gsub("%.[^.]+$", "")
+end
+
 function system.singleResult(cmd)
 	local resultStream = io.popen(cmd)
 	local result = resultStream:read("*line")

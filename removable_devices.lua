@@ -8,11 +8,11 @@
 --
 --]]
 
-local removableDevices = debug.getinfo(1).source:gsub("@", "")
-local scriptDir = removableDevices:gsub("[^/]+$", "")
+local selfPath = debug.getinfo(1).source:gsub("@", "")
+local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = scriptDir .. "libs/?.lua;" .. package.path
-package.path = scriptDir .. "assets/?.lua;" .. package.path
+package.path = selfDir .. "libs/?.lua;" .. package.path
+package.path = selfDir .. "assets/?.lua;" .. package.path
 local l10n = require "l10n"
 local notification = require "notification"
 local openboxMenu = require "openboxMenu"
@@ -40,7 +40,7 @@ local function createDevicesMenu(label, devices)
 			local mounted = ud2.deviceMounted(device) and l10n.mounted or ""
 			local name = ud2.deviceName(device)
 			local label = ud2.deviceLabel(device) or l10n.unlabeled
-			openboxMenu.subPipemenu(string.format("udisks2-%s", name), string.format("%s: %s%s", name, label, mounted), system.cmd(removableDevices, "device-control", name))
+			openboxMenu.subPipemenu(string.format("udisks2-%s", name), string.format("%s: %s%s", name, label, mounted), system.cmd(selfPath, "device-control", name))
 		end
 	else
 		openboxMenu.item(l10n.noMedium)
@@ -64,15 +64,15 @@ local function deviceControl(device)
 	openboxMenu.beginPipemenu()
 	local mounted = ud2.deviceMounted(device)
 	if mounted then
-		openboxMenu.button(l10n.open, system.cmd(removableDevices, "open", device ))
-		openboxMenu.button(l10n.unmount, system.cmd(removableDevices, "unmount", device ))
+		openboxMenu.button(l10n.open, system.cmd(selfPath, "open", device ))
+		openboxMenu.button(l10n.unmount, system.cmd(selfPath, "unmount", device ))
 		-- TODO: if ejectable eject button
 	else
-		openboxMenu.button(l10n.open, system.cmd(removableDevices, "mount-open", device ))
-		openboxMenu.button(l10n.mount, system.cmd(removableDevices, "mount", device ))
+		openboxMenu.button(l10n.open, system.cmd(selfPath, "mount-open", device ))
+		openboxMenu.button(l10n.mount, system.cmd(selfPath, "mount", device ))
 	end
 	local name = ud2.deviceName(device)
-	openboxMenu.subPipemenu("udisks2-info-" .. name, l10n.info, system.cmd(removableDevices, "device-info", device))
+	openboxMenu.subPipemenu("udisks2-info-" .. name, l10n.info, system.cmd(selfPath, "device-info", device))
 	openboxMenu.endPipemenu()
 end
 
@@ -119,14 +119,14 @@ local function help()
 	io.stderr:write("Available options:\n")
 	local optionsTable =
 	{
-		"device-menu\t\tDefault option, will print Openbox pipe menu containing removable devices",
-		"device-control\t\tCreates menu for specified device",
-		"mount\t\t\tRequires device name as argument, causes udisks2 to mount the device",
-		"open\t\t\tOpens path in specified file manager (defined as variable fileManager, currently: " .. fileManager .. ")",
-		"mount-open\t\tMount the given device and opens it in file manager",
-		"unmount\t\t\tUnmounts the device",
-		"eject\t\t\tIf given optical media device, ejects the device",
-		"help\t\t\tPrints this help"
+		"device-menu\tDefault option, will print Openbox pipe menu containing removable devices",
+		"device-control\tCreates menu for specified device",
+		"mount\t\tRequires device name as argument, causes udisks2 to mount the device",
+		"open\t\tOpens path in specified file manager (defined as variable fileManager, currently: " .. fileManager .. ")",
+		"mount-open\tMount the given device and opens it in file manager",
+		"unmount\t\tUnmounts the device",
+		"eject\t\tIf given optical media device, ejects the device",
+		"help\t\tPrints this help"
 	}
 	for _,option  in ipairs(optionsTable) do
 		io.stderr:write(option .. "\n")

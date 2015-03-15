@@ -8,17 +8,17 @@
 --
 --]]
 
-local scriptPath = debug.getinfo(1).source:gsub("@", "")
-local scriptDir = scriptPath:gsub("[^/]+$", "")
+local selfPath = debug.getinfo(1).source:gsub("@", "")
+local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = scriptDir .. "libs/?.lua;" .. package.path
-package.path = scriptDir .. "assets/?.lua;" .. package.path
+package.path = selfDir .. "libs/?.lua;" .. package.path
+package.path = selfDir .. "assets/?.lua;" .. package.path
 local l10n = require "l10n"
 local system = require "system"
 local openboxMenu = require "openboxMenu"
 
 local cmds = {
-	processDetail = "ps -o comm,nice,pcpu,args --pid %d h",
+	processDetail = "ps -o comm,nice,pcpu,%%mem,args --pid %d h",
 	topCpuProcesses = "ps -eo pid --sort=-pcpu h | head -%d | tr -d ' '",
 	topMemProcesses = "ps -eo pid --sort='-%%mem' h | head -%d | tr -d ' '",
 	reniceProcess = "renice -n %d --pid %d"
@@ -29,9 +29,10 @@ local lang = "cz"
 l10n = l10n[lang].processManager
 
 local function processMenu(info)
-	openboxMenu.title(info.prikaz)
+	openboxMenu.title(info.args)
 	openboxMenu.item(string.format("pCPU: %1.2f", info.pcpu))
-	openboxMenu.button(l10n.restartProcess, { string.format("kill -9 %d", info.pid), info.prikaz })
+	openboxMenu.item(string.format("MEM: %1.2f", info.mem))
+	openboxMenu.button(l10n.restartProcess, { string.format("kill -9 %d", info.pid), info.args })
 	if info.nice < 19 then
 		openboxMenu.button(string.format(l10n.lowerPriority, info.nice), string.format(cmds.reniceProcess, info.nice + 5, info.pid))
 	else
@@ -48,10 +49,16 @@ end
 local function processManagement(pid)
 	local psCmd = system.pipe(string.format(cmds.processDetail, pid), "tr -s ' '")
 	local ps = system.singleResult(psCmd) or ""
-	local program, nice, pcpu, prikaz = ps:match("(%w+) (%d+) (%d+%.%d+) (.+)")
-	openboxMenu.beginMenu("top_processes_" .. pid, string.format("%s (PID: %d)", program or "", pid))
-	if program then
-		processMenu({ pid = pid, program = program, nice = tonumber(nice), pcpu = pcpu, prikaz = prikaz })
+	local comm, nice, pcpu, mem, args = ps:match("(%w+) (%d+) (%d+%.%d+) (%d+%.%d+) (.+)")
+	openboxMenu.beginMenu("top_processes_" .. pid, string.format("%s (PID: %d)", comm or "", pid))
+	if comm then
+		processMenu({
+			pid = pid,
+			comm = comm,
+			nice = tonumber(nice),
+			pcpu = pcpu,
+			mem = mem,
+			args = args })
 	else
 		nonexistingProcess(pid)
 	end

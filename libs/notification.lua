@@ -6,7 +6,10 @@
 --
 --]]
 
-package.path = os.getenv("HOME") .. "/.config/openbox/pipe_menus/libs/?.lua;" .. package.path
+local selfPath = debug.getinfo(1).source:gsub("@", "")
+local selfDir = selfPath:gsub("[^/]+$", "")
+
+package.path = selfDir .. "libs/?.lua;" .. package.path
 local system = require "system"
 
 local notification = {}
