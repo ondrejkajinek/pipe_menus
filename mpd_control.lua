@@ -96,14 +96,14 @@ end
 local function savedPlaylists()
 	local playlists = mpd.savedPlaylists()
 	openboxMenu.beginPipemenu()
-	for _, item in pairs(playlists) do
-		if type(item) == "string" then
-			openboxMenu.button(item, switchPlaylistAction(item))
+	for _, playlist in pairs(playlists) do
+		if type(playlist) == "string" then
+			openboxMenu.button(playlist, switchPlaylistAction(playlist))
 		else
-			openboxMenu.beginMenu(string.format("mpd-playlists-%s", item.name), item.name)
-			for _, playlist in ipairs(item.playlists) do
-				local fullName = string.format("%s%s%s", item.name, mpd.playlistSeparator(), playlist)
-				openboxMenu.button(playlist, switchPlaylistAction(fullName))
+			openboxMenu.beginMenu(string.format("mpd-playlists-%s", playlist.name), playlist.name)
+			for _, subplaylist in ipairs(playlist.playlists) do
+				local fullName = mpd.fullPlaylistName(playlist.name, subplaylist)
+				openboxMenu.button(subplaylist, switchPlaylistAction(fullName))
 			end
 			openboxMenu.endMenu()
 		end

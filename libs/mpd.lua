@@ -8,8 +8,7 @@
 
 local mpd = {}
 
-local selfPath = debug.getinfo(1).source:gsub("@", "")
-local selfDir = selfPath:gsub("[^/]+$", "")
+local selfDir = debug.getinfo(1).source:gsub("@", ""):gsub("[^/]+$", "")
 
 package.path = selfDir .. "libs/?.lua;" .. package.path
 local system = require "system"
@@ -42,6 +41,27 @@ local tags = {
 	"%album%", "%track%", "%title%"
 }
 
+local function newAlbumNode(name)
+	return {
+		name = name,
+		tracks = {}
+	}
+end
+
+local function newPlaylistNode(name)
+	return {
+		name = name,
+		playlists = {}
+	}
+end
+
+local function newTrackNode(trackNumber, trackName, playlistNumber)
+	return {
+		name = string.format("%02d - %s", trackNumber or 0, trackName),
+		number = playlistNumber
+	}
+end
+
 -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- public functions  -- -- --
 -- -- -- -- -- -- -- -- -- -- -- --
@@ -55,16 +75,10 @@ function mpd.currentPlaylist()
 		local trackNumber = trackNumber:match("%d+")
 		if not albumIndices[albumName] then
 			albumIndices[albumName] = #albums + 1
-			albums[#albums + 1] = {
-				name = albumName,
-				tracks = {}
-			}
+			albums[#albums + 1] = newAlbumNode(albumName)
 		end
 		local albumIndex = albumIndices[albumName]
-		table.insert(albums[albumIndex].tracks, {
-			name = string.format("%02d - %s", trackNumber or 0, trackName),
-			number = trackNo
-		})
+		table.insert(albums[albumIndex].tracks, newTrackNode(trackNumber, trackName, trackNo))
 		trackNo = trackNo + 1
 	end
 	return albums
@@ -74,12 +88,16 @@ function mpd.currentSong()
 	return system.singleResult(cmds.currentSong)
 end
 
+function mpd.currentSongDir()
+	return system.parentDir(system.path(mpd.path("music_directory"), mpd.currentSongPath()))
+end
+
 function mpd.currentSongPath()
 	return system.singleResult("mpc -f %file% current")
 end
 
-function mpd.currentSongDir()
-	return system.parentDir(system.path(mpd.path("music_directory"), mpd.currentSongPath()))
+function mpd.fullPlaylistName(playlist, subplaylist)
+	return string.format("%s%s%s", playlist, separators.playlist, subplaylist)
 end
 
 function mpd.option(option)
@@ -95,25 +113,22 @@ function mpd.playlist(tags)
 	return system.resultLines(playlistCmd)
 end
 
-function mpd.playlistSeparator()
-	return separators.playlist
+function mpd.playlists()
+	local playlistDir = mpd.path("playlist_directory")
+	local lsCmd = system.pipe(string.format("ls %s", playlistDir), filters.playlist)
+	return system.resultLines(lsCmd)
 end
 
 function mpd.savedPlaylists()
-	local playlistDir = mpd.path("playlist_directory")
-	local lsPlaylistsCmd = system.pipe(string.format("ls %s", playlistDir), filters.playlist)
 	local playlists = {}
 	local playlistsNameIndex = {}
-	for playlist in system.resultLines(lsPlaylistsCmd) do
+	for playlist in mpd.playlists() do
 		local playlistName = system.stripSuffix(playlist)
 		if playlistName:find(separators.playlist) then
 			local directory, playlistName = unpack(playlistName:split(separators.playlist, 1))
 			if not playlistsNameIndex[directory] then
 				playlistsNameIndex[directory] = #playlists + 1
-				playlists[#playlists + 1] = {
-					name = directory,
-					playlists = {}
-				}
+				playlists[#playlists + 1] = newPlaylistNode(directory)
 			end
 			local dirIndex = playlistsNameIndex[directory]
 			local position = discographyNames[playlistName] and 1 or #playlists[dirIndex].playlists + 1
@@ -123,10 +138,6 @@ function mpd.savedPlaylists()
 		end
 	end
 	return playlists
-end
-
-function mpd.tagSeparator()
-	return separators.tag
 end
 
 return mpd
