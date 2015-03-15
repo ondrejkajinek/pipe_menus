@@ -112,23 +112,23 @@ local function eject(device)
 end
 
 local function help()
-	io.stderr:write("removableDevices script usage:\n")
-	io.stderr:write("\tremovableDevices [OPTION] [ARGUMENT]\n")
+	io.stderr:write("removable_devices script usage:\n")
+	io.stderr:write("\tremovable_devices [OPTION] [ARGUMENT]\n")
 	io.stderr:write("\n")
 	io.stderr:write("Available options:\n")
 	local optionsTable =
 	{
-		"device-menu\t\tDefault option, will print Openbox pipe menu containing removable devices\n",
-		"device-control\t\tCreates menu for specified device\n",
-		"mount\t\t\tRequires device name as argument, causes udisks2 to mount the device\n",
-		"open\t\t\tOpens path in specified file manager (defined as variable fileManager, currently: " .. fileManager .. ")\n",
-		"mount-open\t\tMount the given device and opens it in file manager\n",
-		"unmount\t\t\tUnmounts the device\n",
-		"eject\t\t\tIf given optical media device, ejects the device\n",
-		"help\t\t\tPrints this help\n"
+		"device-menu\t\tDefault option, will print Openbox pipe menu containing removable devices",
+		"device-control\t\tCreates menu for specified device",
+		"mount\t\t\tRequires device name as argument, causes udisks2 to mount the device",
+		"open\t\t\tOpens path in specified file manager (defined as variable fileManager, currently: " .. fileManager .. ")",
+		"mount-open\t\tMount the given device and opens it in file manager",
+		"unmount\t\t\tUnmounts the device",
+		"eject\t\t\tIf given optical media device, ejects the device",
+		"help\t\t\tPrints this help"
 	}
 	for _,option  in ipairs(optionsTable) do
-		io.stderr:write(option)
+		io.stderr:write(option .. "\n")
 	end
 end
 

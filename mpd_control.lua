@@ -182,7 +182,21 @@ local function createControls()
 end
 
 local function help()
-	print("TODO")
+	io.stderr:write("mpd_control script usage:\n")
+	io.stderr:write("\mpd_control [OPTION]\n")
+	io.stderr:write("\n")
+	io.stderr:write("Available options:\n")
+	local optionsTable =
+	{
+		"controls\t\tCreates menu with playback controls",
+		"saved-playlists\t\tShows list of saved playlists, provides playlist switching functionality",
+		"current-playlist\tShow songs in current playlist, sorted by albums, provides track switching",
+		"albumart-convert\tLists available images in current song directry, able to convert images into small albumarts",
+		"help\t\t\tPrints this help"
+	}
+	for _,option  in ipairs(optionsTable) do
+		io.stderr:write(option .. "\n")
+	end
 end
 
 local function main(option)

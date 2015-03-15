@@ -70,7 +70,19 @@ local function topMemProcesses(count)
 end
 
 local function help()
-	print("TODO")
+	io.stderr:write("process_management script usage:\n")
+	io.stderr:write("\process_management [OPTION] [COUNT]\n")
+	io.stderr:write("\n")
+	io.stderr:write("Available options:\n")
+	local optionsTable =
+	{
+		"top-cpu\t\tPrints <COUNT> top cpu-consuming processes, allows their killing, restarting, renicing",
+		"top-mem\t\tPrints <COUNT> top memory-consuming processes, allows their killing, restarting, renicing",
+		"help\t\tPrints this help"
+	}
+	for _,option  in ipairs(optionsTable) do
+		io.stderr:write(option .. "\n")
+	end
 end
 
 local function main(option, count)
