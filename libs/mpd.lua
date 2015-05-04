@@ -128,7 +128,7 @@ function mpd.savedPlaylists()
 			local directory, playlistName = unpack(playlistName:split(separators.playlist, 1))
 			if not playlistsNameIndex[directory] then
 				playlistsNameIndex[directory] = #playlists + 1
-				playlists[#playlists + 1] = newPlaylistNode(directory)
+				table.insert(playlists, newPlaylistNode(directory))
 			end
 			local dirIndex = playlistsNameIndex[directory]
 			local position = discographyNames[playlistName] and 1 or #playlists[dirIndex].playlists + 1
