@@ -46,19 +46,16 @@ end
 
 function system.escape(str)
 	local toEscape = "[ ;&()'\"]"
-	local escaped = str:gsub(toEscape, createEscapings(toEscape))
-	return escaped
+	return str:gsub(toEscape, createEscapings(toEscape))
 end
 
 function system.parentDir(path)
-	directory = path:gsub("[^/]+$", "")
-	return directory
+	return path:gsub("[^/]+$", "")
 end
 
 function system.path(...)
 	local parts = { ... }
-	fullPath = table.concat(parts, dirDelimiter):gsub(string.format("%s+", dirDelimiter), dirDelimiter)
-	return fullPath
+	return table.concat(parts, dirDelimiter):gsub(string.format("%s+", dirDelimiter), dirDelimiter)
 end
 
 function system.pipe(...)
@@ -72,6 +69,7 @@ function system.resultLines(cmd)
 		for line in resultStream:lines() do
 			coroutine.yield(line)
 		end
+		resultStream:close()
 	end)
 end
 
