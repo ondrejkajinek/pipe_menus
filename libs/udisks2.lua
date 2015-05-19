@@ -23,12 +23,12 @@ local mountOptions = "nosuid,noexec,noatime"
 -- -- -- -- -- -- -- -- -- -- -- --
 
 local function deviceInfo(device, reqInfo, postprocess)
+	postprocess = type(postprocess) == "function" and postprocess or function(c) return c end
 	local infoCmd = system.cmd(info, device)
 	local infoFilter = string.format("grep -E \"\\s+%s:\"", reqInfo)
 	local sedCmd = string.format("sed -r 's/^\\s+%s:\\s+//g'", reqInfo)
 	local infoCmd = system.pipe(infoCmd, infoFilter, sedCmd, "tail -1")
 	local info = system.singleResult(infoCmd)
-	postprocess = type(postprocess) == "function" and postprocess or function(c) return c end
 	return postprocess(info)
 end
 
