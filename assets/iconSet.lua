@@ -16,6 +16,10 @@ local iconSet = setmetatable({}, {
 
 iconSet =
 {
+	apache = {
+		start = "/usr/share/icons/oxygen/32x32/actions/media-playback-start.png",
+		stop = "/usr/share/icons/oxygen/32x32/actions/media-playback-stop.png"
+	},
 	mpd = {
 		skipBackward = "/usr/share/icons/oxygen/32x32/actions/media-skip-backward.png",
 		skipForward = "/usr/share/icons/oxygen/32x32/actions/media-skip-forward.png",

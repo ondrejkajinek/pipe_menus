@@ -14,6 +14,11 @@ local l10n = setmetatable({}, {
 
 l10n = {
 	cz = {
+		apache = {
+			differentStatuses = "Jedna služba je spuštěna, druhá zastavena",
+			start = "Spustit",
+			stop = "Zastavit",
+		},
 		mpd = {
 			availableAlbumarts = "Dostupné obrázky k albu",
 			currentPlaylist = "Aktuální seznam skladeb",
@@ -52,6 +57,11 @@ l10n = {
 		}
 	},
 	en = {
+		apache = {
+			differentStatuses = "One is stopped, other started",
+			start = "Start",
+			stop = "Stop"
+		},
 		mpd = {
 			availableAlbumarts = "Available albumarts",
 			currentPlaylist = "Current playlist",
