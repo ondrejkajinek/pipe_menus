@@ -9,7 +9,7 @@ Various pipe menus for openbox WM, all scripted in Lua. Feel free to use, modify
 	- udisks2.lua: udisks2 wrapper
 * some assets with l10n or icons:
 	- iconSet.lua: containing icon sets for pipe menus
-	- l10n.lua: definition of messages, in format l10n.<language\_code>.<script\_name>.<message\_name>
+	- l10n.lua: definition of messages, in format l10n.&lt;language\_code&gt;.&lt;script\_name&gt;.&lt;message\_name&gt;
 * scripts for creating different menus:
 	- mpd_control.lua: controls MPD: player controls, switching whole playlists, selecting songs from playlist
 	- process_management.lua: lists top processes, displays some info, able to kill or restart process
