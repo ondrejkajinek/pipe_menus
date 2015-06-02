@@ -6,20 +6,25 @@
 --
 --]]
 
-local l10n = setmetatable({}, {
-	__index = function(tbl, key)
-		return key
-	end
-})
+local fallbackValue = function(tbl, key)
+	io.stderr:write("WARNING: undefined l10n entry: " .. key .. "\n")
+	return key
+end
+
+local function messagePack(entries)
+	return setmetatable(entries, {
+		__index = fallbackValue
+	})
+end
 
 l10n = {
 	cz = {
-		apache = {
+		apache = messagePack({
 			differentStatuses = "Jedna služba je spuštěna, druhá zastavena",
 			start = "Spustit",
 			stop = "Zastavit",
-		},
-		mpd = {
+		}),
+		mpd = messagePack({
 			availableAlbumarts = "Dostupné obrázky k albu",
 			currentPlaylist = "Aktuální seznam skladeb",
 			fromBeginning = "Od začátku",
@@ -31,16 +36,16 @@ l10n = {
 			random = "Náhodně",
 			repeating = "Opakovat",
 			savedPlaylists = "Uložené seznamy skladeb"
-		},
-		processManager = {
+		}),
+		processManager = messagePack({
 			endProcess = "Ukončit proces",
 			killProcess = "Zabít proces",
 			lowerPriority = "Snížit prioritu (nyní: %d)",
 			priority = "Priorita: %d",
 			nonExistingProcess = "Proces s PID %d neexistuje",
 			restartProcess = "Restartovat program"
-		},
-		removableDevices = {
+		}),
+		removableDevices = messagePack({
 			fsType = "Typ",
 			info = "Info",
 			mount = "Připojit",
@@ -54,15 +59,15 @@ l10n = {
 			size = "Velikost",
 			unlabeled = " (bez popisku)",
 			unmount = "Odpojit"
-		}
+		})
 	},
 	en = {
-		apache = {
+		apache = messagePack({
 			differentStatuses = "One is stopped, other started",
 			start = "Start",
 			stop = "Stop"
-		},
-		mpd = {
+		}),
+		mpd = messagePack({
 			availableAlbumarts = "Available albumarts",
 			currentPlaylist = "Current playlist",
 			fromBeginning = "Go to beginning",
@@ -74,16 +79,16 @@ l10n = {
 			random = "Random",
 			repeating = "Repeat",
 			savedPlaylists = "Saved playlists"
-		},
-		processManager = {
+		}),
+		processManager = messagePack({
 			endProcess = "End process",
 			killProcess = "Kill process",
 			lowerPriority = "Lower priority (current: %d)",
 			priority = "Priority: %d",
 			nonExistingProcess = "No process with PID %d",
 			restartProcess = "Restart process"
-		},
-		removableDevices = {
+		}),
+		removableDevices = messagePack({
 			fsType = "Type",
 			info = "Info",
 			mount = "Mount",
@@ -97,7 +102,7 @@ l10n = {
 			size = "Size",
 			unlabeled = " (no label)",
 			unmount = "Unmount"
-		}
+		})
 	}
 }
 

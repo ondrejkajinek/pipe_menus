@@ -8,26 +8,31 @@
 
 local home = os.getenv("HOME")
 
-local iconSet = setmetatable({}, {
-	__index = function()
-		return ""
-	end
-})
+local fallbackValue = function(tbl, key)
+	io.stderr:write("WARNING: undefined icon entry: " .. key .. "\n")
+	return ""
+end
+
+local function iconPack(entries)
+	return setmetatable(entries, {
+		__index = fallbackValue
+	})
+end
 
 iconSet =
 {
-	apache = {
+	apache = iconPack({
 		start = "/usr/share/icons/oxygen/32x32/actions/media-playback-start.png",
 		stop = "/usr/share/icons/oxygen/32x32/actions/media-playback-stop.png"
-	},
-	mpd = {
+	}),
+	mpd = iconPack({
 		skipBackward = "/usr/share/icons/oxygen/32x32/actions/media-skip-backward.png",
 		skipForward = "/usr/share/icons/oxygen/32x32/actions/media-skip-forward.png",
 		playbackPause = "/usr/share/icons/oxygen/32x32/actions/media-playback-pause.png",
 		seekBackward = "/usr/share/icons/oxygen/32x32/actions/media-seek-backward.png",
 		random = home .. "/.icons/actions/media-random-tracks-amarok.png",
 		repeatPlaylist = home .. "/.icons/actions/media-repeat-playlist-amarok.png"
-	}
+	})
 }
 
 return iconSet
