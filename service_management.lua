@@ -33,56 +33,61 @@ local optionsTable = {
 }
 
 local cmds = {
-	serviceStartedTemplate = system.pipe("/etc/init.d/%s status", "grep -o started"),
+	serviceStarted = system.pipe("/etc/init.d/%s status", "grep -o started"),
 	sudoCommand = "kdesu -c '%s'"
 }
+
+-- -- -- -- -- -- -- -- -- -- -- --
+-- -- -- pipemenu settings	-- -- --
+-- -- -- -- -- -- -- -- -- -- -- --
+
+local managedServices = {
+	{ "apache2", "mysql" },
+	"apache2",
+	"mysql",
+	"net.eth0",
+	"net.ppp0"
+}
+
 
 -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- helper functions	-- -- --
 -- -- -- -- -- -- -- -- -- -- -- --
 
 local function serviceStarted(service)
-	local command = string.format(cmds.serviceStartedTemplate, service)
+	local command = string.format(cmds.serviceStarted, service)
 	return system.singleResult(command) == "started"
 end
 
-local function servicesCmd(services, cmd)
-	services = type(services) == "table" and services or { services }
-	for i,service in ipairs(services) do
-		services[i] = string.format("/etc/init.d/%s %s", service, cmd)
+local function servicesStarted(services)
+	local numberStarted = 0
+	for _, service in pairs(services) do
+		if serviceStarted(service) then
+			numberStarted = numberStarted + 1
+		end
 	end
-	return string.format(cmds.sudoCommand, table.concat(services, ";"))
+	return numberStarted == 0 and "stopped" or (numberStarted == #services and "started" or "mixed")
 end
 
-local function controlBothServices()
-	local apacheStarted = serviceStarted("apache2")
-	local mysqlStarted = serviceStarted("mysql")
-	openboxMenu.beginMenu("apache_mysql_both", "Apache & Mysql")
-	-- both are stopped or started
-	if mysqlStarted == apacheStarted then
-		local bothServices = {
-			"apache2",
-			"mysql"
-		}
-		if apacheStarted then
-			openboxMenu.button(l10n.stop, servicesCmd(bothServices, "stop"), iconSet.stop)
-		else
-			openboxMenu.button(l10n.start, servicesCmd(bothServices, "start"), iconSet.start)
-		end
-	-- only one is running
+local function servicesCmd(services, cmd)
+	servicesCmds = {}
+	for i,service in ipairs(services) do
+		servicesCmds[i] = string.format("/etc/init.d/%s %s", service, cmd)
+	end
+	return string.format(cmds.sudoCommand, table.concat(servicesCmds, ";"))
+end
+
+local function controlService(services)
+	services = type(services) == "table" and services or { services }
+	local servicesStatus = servicesStarted(services)
+	openboxMenu.beginMenu("service_management_" .. table.concat(services, "_"), table.concat(services, " & "))
+	if servicesStatus == "started" then
+		openboxMenu.button(l10n.stop, servicesCmd(services, "stop"), iconSet.stop)
+		openboxMenu.button(l10n.restart, servicesCmd(services, "restart"), iconSet.restart)
+	elseif servicesStatus == "stopped" then
+		openboxMenu.button(l10n.start, servicesCmd(services, "start"), iconSet.start)
 	else
 		openboxMenu.item(l10n.differentStatuses)
-	end
-	openboxMenu.endMenu()
-end
-
-local function controlService(service)
-	local serviceStarted = serviceStarted(service)
-	openboxMenu.beginMenu("apache_mysql_single_" .. service, service)
-	if serviceStarted then
-		openboxMenu.button(l10n.stop, servicesCmd(service, "stop"), iconSet.stop)
-	else
-		openboxMenu.button(l10n.start, servicesCmd(service, "start"), iconSet.start)
 	end
 	openboxMenu.endMenu()
 end
@@ -94,9 +99,9 @@ end
 
 local function control()
 	openboxMenu.beginPipemenu()
-	controlBothServices()
-	controlService("apache2")
-	controlService("mysql")
+	for _, service in ipairs(managedServices) do
+		controlService(service)
+	end
 	openboxMenu.endPipemenu()
 end
 
@@ -129,7 +134,6 @@ local function main(option)
 		["help"] = help,
 		["menuHelp"] = menuHelp
 	}
-	-- local option = option or "controls"
 	option = option or "control"
 	local action = actions[option] or menuHelp
 	action()

@@ -21,6 +21,7 @@ l10n = {
 	cz = {
 		apache = messagePack({
 			differentStatuses = "Jedna služba je spuštěna, druhá zastavena",
+			restart = "Restartovat",
 			start = "Spustit",
 			stop = "Zastavit",
 		}),
@@ -64,6 +65,7 @@ l10n = {
 	en = {
 		apache = messagePack({
 			differentStatuses = "One is stopped, other started",
+			restart = "Restart",
 			start = "Start",
 			stop = "Stop"
 		}),
