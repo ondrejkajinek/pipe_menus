@@ -60,14 +60,18 @@ local function serviceStarted(service)
 	return system.singleResult(command) == "started"
 end
 
-local function servicesStarted(services)
+local function servicesStatus(services)
 	local numberStarted = 0
+	local statuses = {
+		[0] = "stopped",
+		[#services] = "started"
+	}
 	for _, service in pairs(services) do
 		if serviceStarted(service) then
 			numberStarted = numberStarted + 1
 		end
 	end
-	return numberStarted == 0 and "stopped" or (numberStarted == #services and "started" or "mixed")
+	return statuses[numberStarted] or "mixed"
 end
 
 local function servicesCmd(services, cmd)
@@ -97,7 +101,7 @@ end
 local function control(services)
 	openboxMenu.beginPipemenu()
 	services = table.ensure(services)
-	local servicesStatus = servicesStarted(services)
+	local servicesStatus = servicesStatus(services)
 	if servicesStatus == "started" then
 		openboxMenu.button(l10n.stop, servicesCmd(services, "stop"), iconSet.stop)
 		openboxMenu.button(l10n.restart, servicesCmd(services, "restart"), iconSet.restart)
