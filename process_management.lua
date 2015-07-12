@@ -25,7 +25,7 @@ local cmds = {
 }
 
 -- use only processManager part of l10n
-local lang = "cz"
+local lang = systemLanguage()
 l10n = l10n[lang].processManager
 
 local function processMenu(info)

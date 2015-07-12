@@ -23,7 +23,7 @@ local system = require "system"
 local lfs = require "lfs"
 
 -- use only MPD part of l10n
-local lang = "cz"
+local lang = systemLanguage()
 l10n = l10n[lang].mpd
 -- use only MPD icons
 iconSet = iconSet.mpd

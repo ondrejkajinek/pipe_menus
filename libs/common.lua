@@ -33,3 +33,11 @@ function string.split(str, separator, maxSplits)
 	return parts
 end
 
+function table.ensure(variable)
+	return type(variable) == "table" and variable or { variable }
+end
+
+function systemLanguage()
+	return os.getenv("LANG"):match("^(%w+)_(%w+)%.([%w-]+)$") or "en"
+end
+

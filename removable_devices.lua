@@ -13,6 +13,7 @@ local selfDir = selfPath:gsub("[^/]+$", "")
 
 package.path = selfDir .. "libs/?.lua;" .. package.path
 package.path = selfDir .. "assets/?.lua;" .. package.path
+require "common"
 local l10n = require "l10n"
 local notification = require "notification"
 local openboxMenu = require "openboxMenu"
@@ -20,7 +21,7 @@ local system = require "system"
 local ud2 = require "udisks2"
 
 -- use only removableDevices part of l10n
-local lang = "cz"
+local lang = systemLanguage()
 l10n = l10n[lang].removableDevices
 
 local ejectableDevicesFilter = "[sh]d[[:lower:]]+[[:digit:]]+|mmcblk[[:digit:]]+"

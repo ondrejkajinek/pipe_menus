@@ -22,7 +22,7 @@ local system = require "system"
 local lfs = require "lfs"
 
 -- use only MPD part of l10n
-local lang = "cz"
+local lang = systemLanguage()
 l10n = l10n[lang].apache
 -- use only MPD icons
 iconSet = iconSet.apache
@@ -44,6 +44,7 @@ local cmds = {
 local managedServices = {
 	{ "apache2", "mysql" },
 	"apache2",
+	{ "cups-browsed", "cupsd" },
 	"mysql",
 	"net.eth0",
 	"net.ppp0"
@@ -77,10 +78,26 @@ local function servicesCmd(services, cmd)
 	return string.format(cmds.sudoCommand, table.concat(servicesCmds, ";"))
 end
 
-local function controlService(services)
-	services = type(services) == "table" and services or { services }
+-- -- -- -- -- -- -- -- -- -- -- --
+-- -- -- module functions  -- -- --
+-- -- -- -- -- -- -- -- -- -- -- --
+
+local function services()
+	openboxMenu.beginPipemenu()
+	for _, services in ipairs(managedServices) do
+		services = table.ensure(services)
+		local pipemenuId = string.format("services_management_%s", table.concat(services, "_"))
+		local pipemenuTitle = table.concat(services, " & ")
+		local pipemenuCommand = system.cmd(selfPath, "control", unpack(services))
+		openboxMenu.subPipemenu(pipemenuId, pipemenuTitle, pipemenuCommand)
+	end
+	openboxMenu.endPipemenu()
+end
+
+local function control(services)
+	openboxMenu.beginPipemenu()
+	services = table.ensure(services)
 	local servicesStatus = servicesStarted(services)
-	openboxMenu.beginMenu("service_management_" .. table.concat(services, "_"), table.concat(services, " & "))
 	if servicesStatus == "started" then
 		openboxMenu.button(l10n.stop, servicesCmd(services, "stop"), iconSet.stop)
 		openboxMenu.button(l10n.restart, servicesCmd(services, "restart"), iconSet.restart)
@@ -88,19 +105,6 @@ local function controlService(services)
 		openboxMenu.button(l10n.start, servicesCmd(services, "start"), iconSet.start)
 	else
 		openboxMenu.item(l10n.differentStatuses)
-	end
-	openboxMenu.endMenu()
-end
-
-
--- -- -- -- -- -- -- -- -- -- -- --
--- -- -- module functions  -- -- --
--- -- -- -- -- -- -- -- -- -- -- --
-
-local function control()
-	openboxMenu.beginPipemenu()
-	for _, service in ipairs(managedServices) do
-		controlService(service)
 	end
 	openboxMenu.endPipemenu()
 end
@@ -127,16 +131,16 @@ local function menuHelp()
 	openboxMenu.endPipemenu()
 end
 
-local function main(option)
-	local actions =
-	{
-		["control"] = control,
-		["help"] = help,
-		["menuHelp"] = menuHelp
+local function main(option, ...)
+	local actions = {
+		control = control,
+		help = help,
+		menuHelp = menuHelp,
+		services = services
 	}
-	option = option or "control"
+	option = option or "services"
 	local action = actions[option] or menuHelp
-	action()
+	action({ ... })
 end
 
 main(unpack({ ... }))

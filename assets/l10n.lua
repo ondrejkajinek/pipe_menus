@@ -18,7 +18,7 @@ local function messagePack(entries)
 end
 
 l10n = {
-	cz = {
+	cs = {
 		apache = messagePack({
 			differentStatuses = "Jedna služba je spuštěna, druhá zastavena",
 			restart = "Restartovat",
