@@ -19,7 +19,7 @@ end
 
 l10n = {
 	cs = {
-		apache = messagePack({
+		services = messagePack({
 			differentStatuses = "Jedna služba je spuštěna, druhá zastavena",
 			restart = "Restartovat",
 			start = "Spustit",
@@ -63,7 +63,7 @@ l10n = {
 		})
 	},
 	en = {
-		apache = messagePack({
+		services = messagePack({
 			differentStatuses = "One is stopped, other started",
 			restart = "Restart",
 			start = "Start",

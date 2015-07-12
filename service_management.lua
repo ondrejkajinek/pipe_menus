@@ -23,9 +23,9 @@ local lfs = require "lfs"
 
 -- use only MPD part of l10n
 local lang = systemLanguage()
-l10n = l10n[lang].apache
+l10n = l10n[lang].services
 -- use only MPD icons
-iconSet = iconSet.apache
+iconSet = iconSet.services
 
 local optionsTable = {
 	"help: Prints this help",
@@ -110,7 +110,7 @@ local function control(services)
 end
 
 local function help()
-	io.stderr:write("apache_mysql script usage:\n")
+	io.stderr:write("service_management script usage:\n")
 	io.stderr:write("mpd_control [OPTION]\n")
 	io.stderr:write("\n")
 	io.stderr:write("Available options:\n")
@@ -121,8 +121,8 @@ end
 
 local function menuHelp()
 	openboxMenu.beginPipemenu()
-	openboxMenu.item("apache_mysql script usage:\n")
-	openboxMenu.item("apache_mysql [OPTION]\n")
+	openboxMenu.item("service_management script usage:\n")
+	openboxMenu.item("service_management [OPTION]\n")
 	openboxMenu.separator()
 	openboxMenu.item("Available options:\n")
 	for _,option in ipairs(optionsTable) do

@@ -21,7 +21,7 @@ end
 
 iconSet =
 {
-	apache = iconPack({
+	services = iconPack({
 		start = "/usr/share/icons/oxygen/32x32/actions/media-playback-start.png",
 		stop = "/usr/share/icons/oxygen/32x32/actions/media-playback-stop.png"
 	}),
