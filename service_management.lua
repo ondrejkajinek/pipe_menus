@@ -22,8 +22,7 @@ local system = require "system"
 local lfs = require "lfs"
 
 -- use only MPD part of l10n
-local lang = systemLanguage()
-l10n = l10n[lang].services
+l10n = l10n[systemLanguage()].services
 -- use only MPD icons
 iconSet = iconSet.services
 
@@ -33,7 +32,7 @@ local optionsTable = {
 }
 
 local cmds = {
-	serviceStarted = system.pipe("/etc/init.d/%s status", "grep -o started"),
+	serviceStatus = system.pipe("/etc/init.d/%s status", "grep -oP '\\S+$'"),
 	sudoCommand = "kdesu -c '%s'"
 }
 
@@ -56,8 +55,8 @@ local managedServices = {
 -- -- -- -- -- -- -- -- -- -- -- --
 
 local function serviceStarted(service)
-	local command = string.format(cmds.serviceStarted, service)
-	return system.singleResult(command) == "started"
+	local command = string.format(cmds.serviceStatus, service)
+	return system.singleResult(command) ~= "stopped"
 end
 
 local function servicesStatus(services)
@@ -88,6 +87,7 @@ end
 
 local function services()
 	openboxMenu.beginPipemenu()
+	openboxMenu.title(l10n.servicesTitle)
 	for _, services in ipairs(managedServices) do
 		services = table.ensure(services)
 		local pipemenuId = string.format("services_management_%s", table.concat(services, "_"))
@@ -102,6 +102,7 @@ local function control(services)
 	openboxMenu.beginPipemenu()
 	services = table.ensure(services)
 	local servicesStatus = servicesStatus(services)
+	openboxMenu.title(string.format("%s: %s", table.concat(services, " & "), servicesStatus))
 	if servicesStatus == "started" then
 		openboxMenu.button(l10n.stop, servicesCmd(services, "stop"), iconSet.stop)
 		openboxMenu.button(l10n.restart, servicesCmd(services, "restart"), iconSet.restart)

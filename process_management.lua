@@ -13,6 +13,7 @@ local selfDir = selfPath:gsub("[^/]+$", "")
 
 package.path = selfDir .. "libs/?.lua;" .. package.path
 package.path = selfDir .. "assets/?.lua;" .. package.path
+require "common"
 local l10n = require "l10n"
 local system = require "system"
 local openboxMenu = require "openboxMenu"
@@ -25,8 +26,7 @@ local cmds = {
 }
 
 -- use only processManager part of l10n
-local lang = systemLanguage()
-l10n = l10n[lang].processManager
+l10n = l10n[systemLanguage()].processManager
 
 local function processMenu(info)
 	openboxMenu.title(info.args)
@@ -49,7 +49,7 @@ end
 local function processManagement(pid)
 	local psCmd = system.pipe(string.format(cmds.processDetail, pid), "tr -s ' '")
 	local ps = system.singleResult(psCmd) or ""
-	local comm, nice, pcpu, mem, args = ps:match("(%w+) (%d+) (%d+%.%d+) (%d+%.%d+) (.+)")
+	local comm, nice, pcpu, mem, args = ps:match("^(%S+)%s+(%d+)%s+(%d+%.%d+)%s+(%d+%.%d+)%s+(.+)$")
 	openboxMenu.beginMenu("top_processes_" .. pid, string.format("%s (PID: %d)", comm or "", pid))
 	if comm then
 		processMenu({
@@ -67,6 +67,7 @@ end
 
 local function topCpuProcesses(count)
 	openboxMenu.beginPipemenu()
+	openboxMenu.title(l10n.topCPU)
 	for pid in system.resultLines(string.format(cmds.topCpuProcesses, count)) do
 		processManagement(pid)
 	end
@@ -75,6 +76,7 @@ end
 
 local function topMemProcesses(count)
 	openboxMenu.beginPipemenu()
+	openboxMenu.title(l10n.topMem)
 	for pid in system.resultLines(string.format(cmds.topMemProcesses, count)) do
 		processManagement(pid)
 	end

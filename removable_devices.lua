@@ -21,8 +21,7 @@ local system = require "system"
 local ud2 = require "udisks2"
 
 -- use only removableDevices part of l10n
-local lang = systemLanguage()
-l10n = l10n[lang].removableDevices
+l10n = l10n[systemLanguage()].removableDevices
 
 local ejectableDevicesFilter = "[sh]d[[:lower:]]+[[:digit:]]+|mmcblk[[:digit:]]+"
 local opticalDevicesFilter = "sr[[:digit:]]+"

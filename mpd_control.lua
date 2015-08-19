@@ -23,8 +23,7 @@ local system = require "system"
 local lfs = require "lfs"
 
 -- use only MPD part of l10n
-local lang = systemLanguage()
-l10n = l10n[lang].mpd
+l10n = l10n[systemLanguage()].mpd
 -- use only MPD icons
 iconSet = iconSet.mpd
 
@@ -83,8 +82,10 @@ end
 local function currentPlaylist()
 	local playlist = mpd.currentPlaylist()
 	openboxMenu.beginPipemenu()
+	openboxMenu.title(l10n.currentPlaylist)
 	for _, album in ipairs(playlist) do
 		openboxMenu.beginMenu(string.format("mpd-playlist-%s", album.name:lower()), album.name)
+		openboxMenu.title(album.name)
 		for _, track in ipairs(album.tracks) do
 			openboxMenu.button(track.name, string.format("mpc play %d", track.number))
 		end
@@ -96,11 +97,13 @@ end
 local function savedPlaylists()
 	local playlists = mpd.savedPlaylists()
 	openboxMenu.beginPipemenu()
+	openboxMenu.title(l10n.savedPlaylists)
 	for _, playlist in pairs(playlists) do
 		if type(playlist) == "string" then
 			openboxMenu.button(playlist, switchPlaylistAction(playlist))
 		else
 			openboxMenu.beginMenu(string.format("mpd-playlists-%s", playlist.name), playlist.name)
+			openboxMenu.title(playlist.name)
 			for _, subplaylist in ipairs(playlist.playlists) do
 				local fullName = mpd.fullPlaylistName(playlist.name, subplaylist)
 				openboxMenu.button(subplaylist, switchPlaylistAction(fullName))
@@ -113,6 +116,7 @@ end
 
 local function albumartConvert()
 	openboxMenu.beginPipemenu()
+	openboxMenu.title(l10n.availableAlbumarts)
 	local songDir = mpd.currentSongDir()
 	local imageFilter = string.format("grep -E '%s'", table.concat(imageSuffixes, "|"))
 	local lsCmd = string.format("ls '%s'", songDir)
@@ -130,7 +134,7 @@ end
 local function createControls()
 	openboxMenu.beginPipemenu()
 	openboxMenu.title(mpd.currentSong() or l10n.notPlaying)
-	playbackControls()	
+	playbackControls()
 	openboxMenu.separator()
 	modeControls()
 	openboxMenu.separator()

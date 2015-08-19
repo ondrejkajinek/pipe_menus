@@ -22,6 +22,7 @@ l10n = {
 		services = messagePack({
 			differentStatuses = "Jedna služba je spuštěna, druhá zastavena",
 			restart = "Restartovat",
+			servicesTitle = "Správce služeb",
 			start = "Spustit",
 			stop = "Zastavit",
 		}),
@@ -44,7 +45,9 @@ l10n = {
 			lowerPriority = "Snížit prioritu (nyní: %d)",
 			priority = "Priorita: %d",
 			nonExistingProcess = "Proces s PID %d neexistuje",
-			restartProcess = "Restartovat program"
+			restartProcess = "Restartovat program",
+			topCPU = "Top CPU",
+			topMem = "Top Mem"
 		}),
 		removableDevices = messagePack({
 			fsType = "Typ",
@@ -66,6 +69,7 @@ l10n = {
 		services = messagePack({
 			differentStatuses = "One is stopped, other started",
 			restart = "Restart",
+			servicesTitle = "Service Manager",
 			start = "Start",
 			stop = "Stop"
 		}),
@@ -88,7 +92,9 @@ l10n = {
 			lowerPriority = "Lower priority (current: %d)",
 			priority = "Priority: %d",
 			nonExistingProcess = "No process with PID %d",
-			restartProcess = "Restart process"
+			restartProcess = "Restart process",
+			topCPU = "Top CPU",
+			topMem = "Top Mem"
 		}),
 		removableDevices = messagePack({
 			fsType = "Type",
