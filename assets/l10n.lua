@@ -27,7 +27,7 @@ l10n = {
 			stop = "Zastavit",
 		}),
 		mpd = messagePack({
-			availableAlbumarts = "Dostupné obrázky k albu",
+			availableAlbumarts = "Dostupné albumarty",
 			currentPlaylist = "Aktuální seznam skladeb",
 			fromBeginning = "Od začátku",
 			nextTrack = "Následující skladba",
