@@ -83,7 +83,7 @@ function mpd.currentPlaylist()
 	end
 	return albums
 end
-	
+
 function mpd.currentSong()
 	return system.singleResult(cmds.currentSong)
 end
@@ -96,8 +96,14 @@ function mpd.currentSongPath()
 	return system.singleResult("mpc -f %file% current")
 end
 
-function mpd.fullPlaylistName(playlist, subplaylist)
-	return string.format("%s%s%s", playlist, separators.playlist, subplaylist)
+function mpd.fullPlaylistName(parent, playlist)
+	local fullName
+	if parent:len() > 0 then
+		fullName = string.format("%s%s%s", parent, separators.playlist, playlist)
+	else
+		fullName = playlist
+	end
+	return fullName
 end
 
 function mpd.option(option)
@@ -119,6 +125,7 @@ function mpd.playlists()
 	return system.resultLines(lsCmd)
 end
 
+-- TODO: enable multiple separators in playlist file name => multiple levels of playlists...
 function mpd.savedPlaylists()
 	local playlists = {}
 	local playlistsNameIndex = {}
