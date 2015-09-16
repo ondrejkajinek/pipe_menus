@@ -75,6 +75,22 @@ local function convertButton(songDir, image)
 	openboxMenu.button(image, string.format(cmds.convertAlbumart, imagePath, albumartSize, albumartSize, albumartPath))
 end
 
+local function savedPlaylistControls(playlist, parent)
+	parent = parent or ""
+	if type(playlist) == "string" then
+		local fullName = mpd.fullPlaylistName(parent, playlist)
+		openboxMenu.button(playlist, switchPlaylistAction(fullName))
+	elseif type(playlist) == "table" then
+		local fullPlaylistName = mpd.fullPlaylistName(parent, playlist.name)
+		openboxMenu.beginMenu(string.format("mpd-playlists-%s", fullPlaylistName), playlist.name)
+		openboxMenu.title(playlist.name)
+		for _, subplaylist in ipairs(playlist.playlists) do
+			savedPlaylistControls(subplaylist, fullPlaylistName)
+		end
+		openboxMenu.endMenu()
+	end
+end
+
 -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- module functions  -- -- --
 -- -- -- -- -- -- -- -- -- -- -- --
@@ -99,17 +115,7 @@ local function savedPlaylists()
 	openboxMenu.beginPipemenu()
 	openboxMenu.title(l10n.savedPlaylists)
 	for _, playlist in pairs(playlists) do
-		if type(playlist) == "string" then
-			openboxMenu.button(playlist, switchPlaylistAction(playlist))
-		else
-			openboxMenu.beginMenu(string.format("mpd-playlists-%s", playlist.name), playlist.name)
-			openboxMenu.title(playlist.name)
-			for _, subplaylist in ipairs(playlist.playlists) do
-				local fullName = mpd.fullPlaylistName(playlist.name, subplaylist)
-				openboxMenu.button(subplaylist, switchPlaylistAction(fullName))
-			end
-			openboxMenu.endMenu()
-		end
+		savedPlaylistControls(playlist)
 	end
 	openboxMenu.endPipemenu()
 end
