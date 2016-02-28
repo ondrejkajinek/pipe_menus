@@ -14,6 +14,7 @@ local selfDir = selfPath:gsub("[^/]+$", "")
 package.path = selfDir .. "?.lua;" .. package.path
 
 require "libs/common"
+require "libs/decorators"
 local l10n = require "assets/l10n"
 local system = require "libs/system"
 local openboxMenu = require "libs/openboxMenu"
@@ -65,22 +66,18 @@ local function processManagement(pid)
 	openboxMenu.endMenu()
 end
 
-local function topCpuProcesses(count)
-	openboxMenu.beginPipemenu()
-	openboxMenu.title(l10n.topCPU)
+local topCpuProcesses = decorator(openboxMenu.pipemenu(l10n.topCPU)) ..
+function(count)
 	for pid in system.resultLines(string.format(cmds.topCpuProcesses, count)) do
 		processManagement(pid)
 	end
-	openboxMenu.endPipemenu()
 end
 
-local function topMemProcesses(count)
-	openboxMenu.beginPipemenu()
-	openboxMenu.title(l10n.topMem)
+local topMemProcesses = decorator(openboxMenu.pipemenu(l10n.topMem)) ..
+function(count)
 	for pid in system.resultLines(string.format(cmds.topMemProcesses, count)) do
 		processManagement(pid)
 	end
-	openboxMenu.endPipemenu()
 end
 
 local function help()

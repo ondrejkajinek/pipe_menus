@@ -14,6 +14,7 @@ local selfDir = selfPath:gsub("[^/]+$", "")
 package.path = selfDir .. "?.lua;" .. package.path
 
 require "libs/common"
+require "libs/decorators"
 local iconSet = require "assets/iconSet"
 local l10n = require "assets/l10n"
 local openboxMenu = require "libs/openboxMenu"
@@ -87,9 +88,8 @@ end
 -- -- -- module functions  -- -- --
 -- -- -- -- -- -- -- -- -- -- -- --
 
-local function services()
-	openboxMenu.beginPipemenu()
-	openboxMenu.title(l10n.servicesTitle)
+local services = decorator(openboxMenu.pipemenu(l10n.servicesTitle)) ..
+function()
 	for _, services in ipairs(managedServices) do
 		services = table.ensure(services)
 		local pipemenuId = string.format("services_management_%s", table.concat(services, "_"))
@@ -97,11 +97,10 @@ local function services()
 		local pipemenuCommand = system.cmd(selfPath, "control", unpack(services))
 		openboxMenu.subPipemenu(pipemenuId, pipemenuTitle, pipemenuCommand)
 	end
-	openboxMenu.endPipemenu()
 end
 
-local function control(services)
-	openboxMenu.beginPipemenu()
+local control = decorator(openboxMenu.pipemenu()) ..
+function (services)
 	services = table.ensure(services)
 	local servicesStatus = servicesStatus(services)
 	openboxMenu.title(string.format("%s: %s", table.concat(services, " & "), servicesStatus))
@@ -113,7 +112,6 @@ local function control(services)
 	else
 		openboxMenu.item(l10n.differentStatuses)
 	end
-	openboxMenu.endPipemenu()
 end
 
 local function help()
@@ -126,8 +124,8 @@ local function help()
 	end
 end
 
-local function menuHelp()
-	openboxMenu.beginPipemenu()
+local menuHelp = decorator(openboxMenu.pipemenu()) ..
+function()
 	openboxMenu.item("service_management script usage:\n")
 	openboxMenu.item("service_management [OPTION]\n")
 	openboxMenu.separator()
@@ -135,7 +133,6 @@ local function menuHelp()
 	for _,option in ipairs(optionsTable) do
 		openboxMenu.item(option .. "\n")
 	end
-	openboxMenu.endPipemenu()
 end
 
 local function main(option, ...)

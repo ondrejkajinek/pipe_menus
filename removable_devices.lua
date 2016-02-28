@@ -14,6 +14,7 @@ local selfDir = selfPath:gsub("[^/]+$", "")
 package.path = selfDir .. "?.lua;" .. package.path
 
 require "libs/common"
+require "libs/decorators"
 local l10n = require "assets/l10n"
 local notification = require "libs/notification"
 local openboxMenu = require "libs/openboxMenu"
@@ -47,8 +48,8 @@ local function createDevicesMenu(menuLabel, devices)
 	end
 end
 
-local function deviceMenu()
-	openboxMenu.beginPipemenu()
+local deviceMenu = decorator(openboxMenu.pipemenu()) ..
+function()
 	if ud2.check() then
 		local ejectableDevices = ud2.devices(ejectableDevicesFilter)
 		local opticalDevices = ud2.devices(opticalDevicesFilter)
@@ -57,7 +58,6 @@ local function deviceMenu()
 	else
 		openboxMenu.item(l10n.noUdisks2)
 	end
-	openboxMenu.endPipemenu()
 end
 
 local function deviceControl(device)
@@ -79,11 +79,10 @@ local function deviceControl(device)
 	openboxMenu.endPipemenu()
 end
 
-local function deviceInfo(device)
-	openboxMenu.beginPipemenu()
+local deviceInfo = decorator(openboxMenu.pipemenu()) ..
+function(device)
 	showInfo(ud2.deviceType(device), l10n.fsType)
 	showInfo(ud2.deviceSize(device), l10n.size)
-	openboxMenu.endPipemenu()
 end
 
 local function mount(device)
