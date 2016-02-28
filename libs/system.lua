@@ -46,7 +46,8 @@ end
 
 function system.escape(str)
 	local toEscape = "[ ;&()'\"]"
-	return str:gsub(toEscape, createEscapings(toEscape))
+	local escaped = str:gsub(toEscape, createEscapings(toEscape))
+	return escaped
 end
 
 function system.parentDir(path)
@@ -55,7 +56,8 @@ end
 
 function system.path(...)
 	local parts = { ... }
-	return table.concat(parts, dirDelimiter):gsub(string.format("%s+", dirDelimiter), dirDelimiter)
+	local path = table.concat(parts, dirDelimiter):gsub(string.format("%s+", dirDelimiter), dirDelimiter)
+	return path
 end
 
 function system.pipe(...)
@@ -81,7 +83,8 @@ function system.singleResult(cmd)
 end
 
 function system.stripSuffix(file)
-	return file:gsub("%.[^.]+$", "")
+	local stripped = file:gsub("%.[^.]+$", "")
+	return stripped
 end
 
 function system.which(cmd)

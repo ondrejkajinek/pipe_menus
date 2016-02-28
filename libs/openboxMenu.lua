@@ -32,7 +32,7 @@ function openboxMenu.button(text, commands, icon)
 	print(string.format('<item label="%s" icon="%s">', escapeHtmlEntities(text), icon))
 	for _, command in ipairs(commands) do
 		print('<action name="execute">')
-		print(string.format('<command>%s</command>', command))
+		print(string.format('<command>%s</command>', escapeHtmlEntities(command)))
 		print('</action>')
 	end
 	print('</item>')
