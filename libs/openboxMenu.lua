@@ -12,6 +12,15 @@ local openboxMenu = {}
 -- -- -- private functions -- -- --
 -- -- -- -- -- -- -- -- -- -- -- --
 
+local function beginPipemenu()
+	print([[<?xml version="1.0" encoding="UTF-8"?>
+<openbox_pipe_menu>]])
+end
+
+local function endPipemenu()
+	print('</openbox_pipe_menu>')
+end
+
 local function escapeHtmlEntities(text)
 	local escaped = '["&<>]'
 	local entities = { ["&"] = "&amp;", ['"'] = "&quot;", ["<"] = "&lt;", [">"] = "&gt;" }
@@ -26,9 +35,7 @@ function openboxMenu.button(text, commands, icon)
 	assert(text, "Text of button not specified.")
 	assert(commands, "Button command not specified.")
 	icon = icon or ""
-	if type(commands) == "string" then
-		commands = { commands }
-	end
+	commands = type(commands) == "string" and { commands } or commands
 	print(string.format('<item label="%s" icon="%s">', escapeHtmlEntities(text), icon))
 	for _, command in ipairs(commands) do
 		print('<action name="execute">')
@@ -71,12 +78,20 @@ function openboxMenu.subPipemenu(id, label, execute, icon)
 	print(string.format('<menu id="%s" label="%s" execute="%s" icon="%s"/>', escapeHtmlEntities(id), escapeHtmlEntities(label), execute, icon))
 end
 
-function openboxMenu.beginPipemenu()
-	print('<?xml version="1.0" encoding="UTF-8"?>\n<openbox_pipe_menu>')
-end
 
-function openboxMenu.endPipemenu()
-	print('</openbox_pipe_menu>')
+-- -- -- -- -- -- -- -- -- -- -- --
+-- -- -- -- decorators  -- -- -- --
+-- -- -- -- -- -- -- -- -- -- -- --
+
+function openboxMenu.pipemenu(title)
+	return function(func)
+		return function(...)
+			beginPipemenu()
+			openboxMenu.title(title)
+			func(unpack{...})
+			endPipemenu()
+		end
+	end
 end
 
 return openboxMenu

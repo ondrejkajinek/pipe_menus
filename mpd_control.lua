@@ -36,22 +36,6 @@ local cmds = {
 
 
 -- -- -- -- -- -- -- -- -- -- -- --
--- -- -- -- decorators  -- -- -- --
--- -- -- -- -- -- -- -- -- -- -- --
-
-local function pipemenu(title)
-	return function(func)
-		return function(...)
-			openboxMenu.beginPipemenu()
-			openboxMenu.title(title)
-			func(unpack{...})
-			openboxMenu.endPipemenu()
-		end
-	end
-end
-
-
--- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- helper functions	-- -- --
 -- -- -- -- -- -- -- -- -- -- -- --
 
@@ -112,7 +96,7 @@ end
 -- -- -- module functions  -- -- --
 -- -- -- -- -- -- -- -- -- -- -- --
 
-local albumartConvert = decorator(pipemenu(l10n.availableAlbumarts)) ..
+local albumartConvert = decorator(openboxMenu.pipemenu(l10n.availableAlbumarts)) ..
 function()
 	local songDir = system.escape(mpd.currentSongDir())
 	local lsCmd = string.format("ls %s", songDir)
@@ -127,7 +111,7 @@ function()
 	end
 end
 
-local createControls = decorator(pipemenu(mpd.currentSong() or l10n.notPlaying)) ..
+local createControls = decorator(openboxMenu.pipemenu(mpd.currentSong() or l10n.notPlaying)) ..
 function()
 	playbackControls()
 	openboxMenu.separator()
@@ -138,7 +122,7 @@ function()
 	otherControls()
 end
 
-local currentPlaylist = decorator(pipemenu(l10n.currentPlaylist)) ..
+local currentPlaylist = decorator(openboxMenu.pipemenu(l10n.currentPlaylist)) ..
 function()
 	local playlist = mpd.currentPlaylist()
 	for _, album in ipairs(playlist) do
@@ -169,7 +153,7 @@ local function help()
 	end
 end
 
-local savedPlaylists = decorator(pipemenu(l10n.savedPlaylists)) ..
+local savedPlaylists = decorator(openboxMenu.pipemenu(l10n.savedPlaylists)) ..
 function()
 	local playlists = mpd.savedPlaylists()
 	local empty = true
