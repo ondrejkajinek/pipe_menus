@@ -6,7 +6,7 @@
 --
 --]]
 
-local system = require "system"
+local system = require "libs/system"
 
 local udisks2 = {}
 

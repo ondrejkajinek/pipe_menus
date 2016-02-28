@@ -11,15 +11,13 @@
 local selfPath = debug.getinfo(1).source:gsub("@", "")
 local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = selfDir .. "libs/?.lua;" .. package.path
-package.path = selfDir .. "assets/?.lua;" .. package.path
-package.cpath = "/usr/lib/lua/luarocks/lib/lua/5.1/?.so;" .. package.cpath
-require "common"
-local iconSet = require "iconSet"
-local l10n = require "l10n"
-local openboxMenu = require "openboxMenu"
-local system = require "system"
-local lfs = require "lfs"
+package.path = selfDir .. "?.lua;" .. package.path
+
+require "libs/common"
+local iconSet = require "assets/iconSet"
+local l10n = require "assets/l10n"
+local openboxMenu = require "libs/openboxMenu"
+local system = require "libs/system"
 
 -- use only MPD part of l10n
 l10n = l10n[systemLanguage()].services
@@ -43,10 +41,14 @@ local cmds = {
 local managedServices = {
 	{ "apache2", "mysql" },
 	"apache2",
+	"benefity",
 	{ "cups-browsed", "cupsd" },
 	"mysql",
 	"net.eth0",
-	"net.ppp0"
+	"net.ppp0",
+	"net.wlan0",
+	"openvpn.ats",
+	"redis"
 }
 
 

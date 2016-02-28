@@ -11,14 +11,14 @@
 local selfPath = debug.getinfo(1).source:gsub("@", "")
 local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = selfDir .. "libs/?.lua;" .. package.path
-package.path = selfDir .. "assets/?.lua;" .. package.path
-require "common"
-local l10n = require "l10n"
-local notification = require "notification"
-local openboxMenu = require "openboxMenu"
-local system = require "system"
-local ud2 = require "udisks2"
+package.path = selfDir .. "?.lua;" .. package.path
+
+require "libs/common"
+local l10n = require "assets/l10n"
+local notification = require "libs/notification"
+local openboxMenu = require "libs/openboxMenu"
+local system = require "libs/system"
+local ud2 = require "libs/udisks2"
 
 -- use only removableDevices part of l10n
 l10n = l10n[systemLanguage()].removableDevices
@@ -33,8 +33,8 @@ local function showInfo(info, label)
 	end
 end
 
-local function createDevicesMenu(label, devices)
-	openboxMenu.title(label)
+local function createDevicesMenu(menuLabel, devices)
+	openboxMenu.title(menuLabel)
 	if #devices > 0 then
 		for _, device in ipairs(devices) do
 			local mounted = ud2.deviceMounted(device) and l10n.mounted or ""
@@ -61,7 +61,10 @@ local function deviceMenu()
 end
 
 local function deviceControl(device)
+	local label = ud2.deviceLabel(device) or l10n.unlabeled
+	local mounted = ud2.deviceMounted(device) and l10n.mounted or ""
 	openboxMenu.beginPipemenu()
+	openboxMenu.title(string.format("%s%s", label, mounted))
 	local mounted = ud2.deviceMounted(device)
 	if mounted then
 		openboxMenu.button(l10n.open, system.cmd(selfPath, "open", device ))

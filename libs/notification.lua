@@ -7,10 +7,8 @@
 --]]
 
 local selfPath = debug.getinfo(1).source:gsub("@", "")
-local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = selfDir .. "libs/?.lua;" .. package.path
-local system = require "system"
+local system = require "libs/system"
 
 local notification = {}
 

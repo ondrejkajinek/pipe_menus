@@ -11,12 +11,12 @@
 local selfPath = debug.getinfo(1).source:gsub("@", "")
 local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = selfDir .. "libs/?.lua;" .. package.path
-package.path = selfDir .. "assets/?.lua;" .. package.path
-require "common"
-local l10n = require "l10n"
-local system = require "system"
-local openboxMenu = require "openboxMenu"
+package.path = selfDir .. "?.lua;" .. package.path
+
+require "libs/common"
+local l10n = require "assets/l10n"
+local system = require "libs/system"
+local openboxMenu = require "libs/openboxMenu"
 
 local cmds = {
 	processDetail = "ps -o comm,nice,pcpu,%%mem,args --pid %d h",
