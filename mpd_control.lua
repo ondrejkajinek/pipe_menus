@@ -11,16 +11,15 @@
 local selfPath = debug.getinfo(1).source:gsub("@", "")
 local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = selfDir .. "libs/?.lua;" .. package.path
-package.path = selfDir .. "assets/?.lua;" .. package.path
-package.cpath = "/usr/lib/lua/luarocks/lib/lua/5.1/?.so;" .. package.cpath
-require "common"
-local iconSet = require "iconSet"
-local l10n = require "l10n"
-local mpd = require "mpd"
-local openboxMenu = require "openboxMenu"
-local system = require "system"
-local lfs = require "lfs"
+package.path = selfDir .. "?.lua;" .. package.path
+
+require "libs/common"
+require "libs/decorators"
+local iconSet = require "assets/iconSet"
+local l10n = require "assets/l10n"
+local mpd = require "libs/mpd"
+local openboxMenu = require "libs/openboxMenu"
+local system = require "libs/system"
 
 -- use only MPD part of l10n
 l10n = l10n[systemLanguage()].mpd
@@ -32,12 +31,57 @@ local albumartName = "albumart.png"
 local imageSuffixes = { "jpg", "jpeg" }
 
 local cmds = {
-	convertAlbumart = "convert '%s' -resize %dx%d '%s'"
+	convertAlbumart = "convert %s -resize %dx%d %s"
 }
+
+
+-- -- -- -- -- -- -- -- -- -- -- --
+-- -- -- -- decorators  -- -- -- --
+-- -- -- -- -- -- -- -- -- -- -- --
+
+local function pipemenu(title)
+	return function(func)
+		return function(...)
+			openboxMenu.beginPipemenu()
+			openboxMenu.title(title)
+			func(unpack{...})
+			openboxMenu.endPipemenu()
+		end
+	end
+end
+
 
 -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- helper functions	-- -- --
 -- -- -- -- -- -- -- -- -- -- -- --
+
+local function convertButton(songDir, image)
+	local imagePath = system.path(songDir, system.escape(image))
+	local albumartPath = system.path(songDir, albumartName)
+	openboxMenu.button(image, string.format(cmds.convertAlbumart, imagePath, albumartSize, albumartSize, albumartPath))
+end
+
+local function modeControls()
+	openboxMenu.button(string.format("%s (%s)", l10n.random, mpd.option("random")), "mpc random", iconSet.random)
+	openboxMenu.button(string.format("%s (%s)", l10n.repeating, mpd.option("repeat")), "mpc repeat", iconSet.repeatPlaylist)
+end
+
+local function playbackControls()
+	openboxMenu.button(l10n.previousTrack, "mpc prev", iconSet.skipBackward)
+	openboxMenu.button(l10n.playPause, "mpc toggle", iconSet.playbackPause)
+	openboxMenu.button(l10n.fromBeginning, "mpc seek 0", iconSet.seekBackward)
+	openboxMenu.button(l10n.nextTrack, "mpc next", iconSet.skipForward)
+end
+
+
+local function playlistControls()
+	openboxMenu.subPipemenu("mpc-playlist", l10n.currentPlaylist, string.format("%s current-playlist", selfPath))
+	openboxMenu.subPipemenu("mpc-playlists", l10n.savedPlaylists, string.format("%s saved-playlists", selfPath))
+end
+
+local function otherControls()
+	openboxMenu.subPipemenu("mpc-albumarts", l10n.availableAlbumarts, string.format("%s albumart-convert", selfPath))
+end
 
 local function switchPlaylistAction(playlistName)
 	local escapedPlaylistName = playlistName:gsub("'", "\\'")
@@ -48,84 +92,31 @@ local function switchPlaylistAction(playlistName)
 	}
 end
 
-local function playbackControls()
-	openboxMenu.button(l10n.previousTrack, "mpc prev", iconSet.skipBackward)
-	openboxMenu.button(l10n.playPause, "mpc toggle", iconSet.playbackPause)
-	openboxMenu.button(l10n.fromBeginning, "mpc seek 0", iconSet.seekBackward)
-	openboxMenu.button(l10n.nextTrack, "mpc next", iconSet.skipForward)
-end
-
-local function modeControls()
-	openboxMenu.button(string.format("%s (%s)", l10n.random, mpd.option("random")), "mpc random", iconSet.random)
-	openboxMenu.button(string.format("%s (%s)", l10n.repeating, mpd.option("repeat")), "mpc repeat", iconSet.repeatPlaylist)
-end
-
-local function playlistControls()
-	openboxMenu.subPipemenu("mpc-playlist", l10n.currentPlaylist, string.format("%s current-playlist", selfPath))
-	openboxMenu.subPipemenu("mpd-playlists", l10n.savedPlaylists, string.format("%s saved-playlists", selfPath))
-end
-
-local function otherControls()
-	openboxMenu.subPipemenu("mpc-albumarts", l10n.availableAlbumarts, string.format("%s albumart-convert", selfPath))
-end
-
-local function convertButton(songDir, image)
-	local imagePath = system.path(songDir, image)
-	local albumartPath = system.path(songDir, albumartName)
-	openboxMenu.button(image, string.format(cmds.convertAlbumart, imagePath, albumartSize, albumartSize, albumartPath))
-end
-
 local function savedPlaylistControls(playlist, parent)
-	parent = parent or ""
 	if type(playlist) == "string" then
-		local fullName = mpd.fullPlaylistName(parent, playlist)
+		local fullName = mpd.fullPlaylistName(playlist, parent)
 		openboxMenu.button(playlist, switchPlaylistAction(fullName))
 	elseif type(playlist) == "table" then
-		local fullPlaylistName = mpd.fullPlaylistName(parent, playlist.name)
+		local fullPlaylistName = mpd.fullPlaylistName(playlist.name, parent)
 		openboxMenu.beginMenu(string.format("mpd-playlists-%s", fullPlaylistName), playlist.name)
 		openboxMenu.title(playlist.name)
-		for _, subplaylist in ipairs(playlist.playlists) do
+		for _, subplaylist in ipairs(playlist.content) do
 			savedPlaylistControls(subplaylist, fullPlaylistName)
 		end
 		openboxMenu.endMenu()
 	end
 end
 
+
 -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- module functions  -- -- --
 -- -- -- -- -- -- -- -- -- -- -- --
 
-local function currentPlaylist()
-	local playlist = mpd.currentPlaylist()
-	openboxMenu.beginPipemenu()
-	openboxMenu.title(l10n.currentPlaylist)
-	for _, album in ipairs(playlist) do
-		openboxMenu.beginMenu(string.format("mpd-playlist-%s", album.name:lower()), album.name)
-		openboxMenu.title(album.name)
-		for _, track in ipairs(album.tracks) do
-			openboxMenu.button(track.name, string.format("mpc play %d", track.number))
-		end
-		openboxMenu.endMenu()
-	end
-	openboxMenu.endPipemenu()
-end
-
-local function savedPlaylists()
-	local playlists = mpd.savedPlaylists()
-	openboxMenu.beginPipemenu()
-	openboxMenu.title(l10n.savedPlaylists)
-	for _, playlist in pairs(playlists) do
-		savedPlaylistControls(playlist)
-	end
-	openboxMenu.endPipemenu()
-end
-
-local function albumartConvert()
-	openboxMenu.beginPipemenu()
-	openboxMenu.title(l10n.availableAlbumarts)
-	local songDir = mpd.currentSongDir()
+local albumartConvert = decorator(pipemenu(l10n.availableAlbumarts)) ..
+function()
+	local songDir = system.escape(mpd.currentSongDir())
+	local lsCmd = string.format("ls %s", songDir)
 	local imageFilter = string.format("grep -E '%s'", table.concat(imageSuffixes, "|"))
-	local lsCmd = string.format("ls '%s'", songDir)
 	local imagesAvailable = false
 	for image in system.resultLines(system.pipe(lsCmd, imageFilter)) do
 		convertButton(songDir, image)
@@ -134,12 +125,10 @@ local function albumartConvert()
 	if not imagesAvailable then
 		openboxMenu.item(l10n.noImagesFound)
 	end
-	openboxMenu.endPipemenu()
 end
 
-local function createControls()
-	openboxMenu.beginPipemenu()
-	openboxMenu.title(mpd.currentSong() or l10n.notPlaying)
+local createControls = decorator(pipemenu(mpd.currentSong() or l10n.notPlaying)) ..
+function()
 	playbackControls()
 	openboxMenu.separator()
 	modeControls()
@@ -147,7 +136,19 @@ local function createControls()
 	playlistControls()
 	openboxMenu.separator()
 	otherControls()
-	openboxMenu.endPipemenu()
+end
+
+local currentPlaylist = decorator(pipemenu(l10n.currentPlaylist)) ..
+function()
+	local playlist = mpd.currentPlaylist()
+	for _, album in ipairs(playlist) do
+		openboxMenu.beginMenu(string.format("mpd-playlist-%s", album.name:lower()), album.name)
+		openboxMenu.title(album.name)
+		for _, track in ipairs(album.tracks) do
+			openboxMenu.button(track.name, string.format("mpc play %d", track.number))
+		end
+		openboxMenu.endMenu()
+	end
 end
 
 local function help()
@@ -167,6 +168,24 @@ local function help()
 		io.stderr:write(option .. "\n")
 	end
 end
+
+local savedPlaylists = decorator(pipemenu(l10n.savedPlaylists)) ..
+function()
+	local playlists = mpd.savedPlaylists()
+	local empty = true
+	for _, playlist in pairs(playlists) do
+		savedPlaylistControls(playlist)
+		empty = false
+	end
+	if empty then
+		openboxMenu.item(l10n.noPlaylistsFound)
+	end
+end
+
+
+-- -- -- -- -- -- -- -- -- -- -- --
+-- -- -- -- -- MAIN	-- -- -- -- --
+-- -- -- -- -- -- -- -- -- -- -- --
 
 local function main(option)
 	local actions =

@@ -10,8 +10,8 @@ local mpd = {}
 
 local selfDir = debug.getinfo(1).source:gsub("@", ""):gsub("[^/]+$", "")
 
-package.path = selfDir .. "libs/?.lua;" .. package.path
-local system = require "system"
+local system = require "libs/system"
+require "libs/DirStructure"
 
 -- -- -- -- -- -- -- -- -- -- -- --
 -- -- -- private functions -- -- --
@@ -96,14 +96,8 @@ function mpd.currentSongPath()
 	return system.singleResult("mpc -f %file% current")
 end
 
-function mpd.fullPlaylistName(parent, playlist)
-	local fullName
-	if parent:len() > 0 then
-		fullName = string.format("%s%s%s", parent, separators.playlist, playlist)
-	else
-		fullName = playlist
-	end
-	return fullName
+function mpd.fullPlaylistName(playlist, parent)
+	return parent and (parent .. separators.playlist .. playlist) or playlist
 end
 
 function mpd.option(option)
@@ -125,26 +119,13 @@ function mpd.playlists()
 	return system.resultLines(lsCmd)
 end
 
--- TODO: enable multiple separators in playlist file name => multiple levels of playlists...
 function mpd.savedPlaylists()
-	local playlists = {}
-	local playlistsNameIndex = {}
+	local playlistTree = DirStructure()
 	for playlist in mpd.playlists() do
 		local playlistName = system.stripSuffix(playlist)
-		if playlistName:find(separators.playlist) then
-			local directory, playlistName = unpack(playlistName:split(separators.playlist, 1))
-			if not playlistsNameIndex[directory] then
-				playlistsNameIndex[directory] = #playlists + 1
-				table.insert(playlists, newPlaylistNode(directory))
-			end
-			local dirIndex = playlistsNameIndex[directory]
-			local position = discographyNames[playlistName] and 1 or #playlists[dirIndex].playlists + 1
-			table.insert(playlists[dirIndex].playlists, position, playlistName)
-		else
-			table.insert(playlists, playlistName)
-		end
+		playlistTree.addFile(playlistName, separators.playlist)
 	end
-	return playlists
+	return playlistTree.getDir()
 end
 
 return mpd
