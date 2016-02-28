@@ -87,7 +87,9 @@ function openboxMenu.pipemenu(title)
 	return function(func)
 		return function(...)
 			beginPipemenu()
-			openboxMenu.title(title)
+			if title then
+				openboxMenu.title(title)
+			end
 			func(unpack{...})
 			endPipemenu()
 		end
