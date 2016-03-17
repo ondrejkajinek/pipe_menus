@@ -11,7 +11,7 @@
 local selfPath = debug.getinfo(1).source:gsub("@", "")
 local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = selfDir .. "?.lua;" .. package.path
+package.path = "/home/ondra/programming/lua/?.lua;" .. selfDir .. "?.lua;" .. package.path
 
 require "libs/common"
 require "libs/decorators"
@@ -28,8 +28,6 @@ iconSet = iconSet.mpd
 
 local albumartSize = 80
 local albumartName = "albumart.png"
-local imageSuffixes = { "jpg", "jpeg" }
-
 local cmds = {
 	convertAlbumart = "convert %s -resize %dx%d %s"
 }
@@ -68,10 +66,10 @@ local function otherControls()
 end
 
 local function switchPlaylistAction(playlistName)
-	local escapedPlaylistName = playlistName:gsub("'", "\\'")
+	local escapedPlaylistName = playlistName:gsub('"', '\\"')
 	return {
 		"mpc clear",
-		string.format("mpc load \"%s\"", playlistName),
+		string.format("mpc load \"%s\"", escapedPlaylistName),
 		"mpc toggle"
 	}
 end
@@ -98,12 +96,9 @@ end
 
 local albumartConvert = decorator(openboxMenu.pipemenu(l10n.availableAlbumarts)) ..
 function()
-	local songDir = system.escape(mpd.currentSongDir())
-	local lsCmd = string.format("ls %s", songDir)
-	local imageFilter = string.format("grep -E '%s'", table.concat(imageSuffixes, "|"))
 	local imagesAvailable = false
-	for image in system.resultLines(system.pipe(lsCmd, imageFilter)) do
-		convertButton(songDir, image)
+	for dir, image in mpd.availableAlbumarts() do
+		convertButton(dir, image)
 		imagesAvailable = true
 	end
 	if not imagesAvailable then
@@ -136,21 +131,16 @@ function()
 end
 
 local function help()
-	io.stderr:write("mpd_control script usage:\n")
-	io.stderr:write("mpd_control [OPTION]\n")
-	io.stderr:write("\n")
-	io.stderr:write("Available options:\n")
-	local optionsTable =
-	{
-		"controls\t\tCreates menu with playback controls",
-		"saved-playlists\t\tShows list of saved playlists, provides playlist switching functionality",
-		"current-playlist\tShow songs in current playlist, sorted by albums, provides track switching",
-		"albumart-convert\tLists available images in current song directory, able to convert images into small albumarts",
-		"help\t\t\tPrints this help"
-	}
-	for _,option  in ipairs(optionsTable) do
-		io.stderr:write(option .. "\n")
-	end
+	io.stderr:write([[mpd_control script usage:
+mpd_control [OPTION]
+
+Available options:
+	controls		Creates menu with playback controls
+	saved-playlists		Shows list of saved playlists, provides playlist switching functionality
+	current-playlist	Show songs in current playlist, sorted by albums, provides track switching
+	albumart-convert	Lists available images in current song directory, able to convert images into small albumarts
+	help			Prints this help
+]])
 end
 
 local savedPlaylists = decorator(openboxMenu.pipemenu(l10n.savedPlaylists)) ..

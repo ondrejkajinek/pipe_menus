@@ -11,7 +11,7 @@
 local selfPath = debug.getinfo(1).source:gsub("@", "")
 local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = selfDir .. "?.lua;" .. package.path
+package.path = "/home/ondra/programming/lua/?.lua;" .. selfDir .. "?.lua;" .. package.path
 
 require "libs/common"
 require "libs/decorators"
@@ -60,10 +60,10 @@ function()
 	end
 end
 
-local function deviceControl(device)
+local deviceControl = decorator(openboxMenu.pipemenu())..
+function(device)
 	local label = ud2.deviceLabel(device) or l10n.unlabeled
 	local mounted = ud2.deviceMounted(device) and l10n.mounted or ""
-	openboxMenu.beginPipemenu()
 	openboxMenu.title(string.format("%s%s", label, mounted))
 	local mounted = ud2.deviceMounted(device)
 	if mounted then
@@ -76,7 +76,6 @@ local function deviceControl(device)
 	end
 	local name = ud2.deviceName(device)
 	openboxMenu.subPipemenu("udisks2-info-" .. name, l10n.info, system.cmd(selfPath, "device-info", device))
-	openboxMenu.endPipemenu()
 end
 
 local deviceInfo = decorator(openboxMenu.pipemenu()) ..

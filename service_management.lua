@@ -11,7 +11,7 @@
 local selfPath = debug.getinfo(1).source:gsub("@", "")
 local selfDir = selfPath:gsub("[^/]+$", "")
 
-package.path = selfDir .. "?.lua;" .. package.path
+package.path = "/home/ondra/programming/lua/?.lua;" .. selfDir .. "?.lua;" .. package.path
 
 require "libs/common"
 require "libs/decorators"
@@ -46,7 +46,6 @@ local managedServices = {
 	{ "cups-browsed", "cupsd" },
 	"mysql",
 	"net.eth0",
-	"net.ppp0",
 	"net.wlan0",
 	"openvpn.ats",
 	"redis"
